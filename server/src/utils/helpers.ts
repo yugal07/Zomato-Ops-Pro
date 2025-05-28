@@ -1,9 +1,40 @@
-import { OrderStatus } from '../types/order.types';
+import { OrderStatus, CreateOrderData } from '../types/order.types';
 
 export const generateOrderId = (): string => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substr(2, 5);
   return `ORD${timestamp}${random}`.toUpperCase();
+};
+
+export const validateOrderData = (orderData: CreateOrderData): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!orderData.items || orderData.items.length === 0) {
+    errors.push('Order must have at least one item');
+  }
+
+  if (orderData.items) {
+    orderData.items.forEach((item, index) => {
+      if (!item.name || item.name.trim() === '') {
+        errors.push(`Item ${index + 1}: Name is required`);
+      }
+      if (!item.quantity || item.quantity < 1) {
+        errors.push(`Item ${index + 1}: Quantity must be at least 1`);
+      }
+      if (item.price < 0) {
+        errors.push(`Item ${index + 1}: Price cannot be negative`);
+      }
+    });
+  }
+
+  if (!orderData.prepTime || orderData.prepTime < 1 || orderData.prepTime > 120) {
+    errors.push('Preparation time must be between 1 and 120 minutes');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
 export const calculateDispatchTime = (prepTime: number, deliveryETA: number = 30): Date => {

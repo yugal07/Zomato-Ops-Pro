@@ -5,18 +5,19 @@ import { validateRegistrationData } from '../utils/validators';
 import { AuthRequest } from '../middleware/auth';
 
 export class AuthController {
-  static async register(req: Request, res: Response, next: NextFunction) {
+  static async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userData: RegisterData = req.body;
 
       // Validate input
       const validation = validateRegistrationData(userData);
       if (!validation.isValid) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Validation failed',
           errors: validation.errors
         });
+        return;
       }
 
       const result = await AuthService.register(userData);
@@ -31,15 +32,16 @@ export class AuthController {
     }
   }
 
-  static async login(req: Request, res: Response, next: NextFunction) {
+  static async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const credentials: LoginCredentials = req.body;
 
       if (!credentials.email || !credentials.password) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Email and password are required'
         });
+        return;
       }
 
       const result = await AuthService.login(credentials);
@@ -54,13 +56,14 @@ export class AuthController {
     }
   }
 
-  static async getProfile(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const profile = await AuthService.getUserProfile(req.user._id);
@@ -74,7 +77,7 @@ export class AuthController {
     }
   }
 
-  static async logout(req: AuthRequest, res: Response) {
+  static logout(req: AuthRequest, res: Response): void {
     // For JWT, logout is handled client-side by removing the token
     // In future, you could implement token blacklisting here
     res.json({

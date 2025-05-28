@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import User from '../models/User';
 import DeliveryPartner from '../models/DeliveryPartner';
 import { RegisterData, LoginCredentials, JWTPayload, UserRole } from '../types/auth.types';
@@ -7,9 +8,11 @@ import { AppError } from '../middleware/errorHandler';
 
 export class AuthService {
   static generateToken(payload: JWTPayload): string {
-    return jwt.sign(payload, authConfig.jwtSecret, {
-      expiresIn: authConfig.jwtExpiresIn
-    });
+    const options: SignOptions = {
+      expiresIn: authConfig.jwtExpiresIn as StringValue
+    };
+    
+    return jwt.sign(payload, authConfig.jwtSecret, options);
   }
 
   static async register(userData: RegisterData) {
@@ -35,7 +38,7 @@ export class AuthService {
 
     // Generate token
     const tokenPayload: JWTPayload = {
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
       role: user.role
     };
@@ -71,7 +74,7 @@ export class AuthService {
 
     // Generate token
     const tokenPayload: JWTPayload = {
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
       role: user.role
     };

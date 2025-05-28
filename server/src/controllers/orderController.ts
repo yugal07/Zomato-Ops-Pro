@@ -4,13 +4,14 @@ import { CreateOrderData, AssignPartnerData, StatusUpdateData } from '../types/o
 import { AuthRequest } from '../middleware/auth';
 
 export class OrderController {
-  static async createOrder(req: AuthRequest, res: Response, next: NextFunction) {
+  static async createOrder(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const orderData: CreateOrderData = req.body;
@@ -26,7 +27,7 @@ export class OrderController {
     }
   }
 
-  static async getOrders(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getOrders(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const options = {
         page: parseInt(req.query.page as string) || 1,
@@ -51,7 +52,7 @@ export class OrderController {
     }
   }
 
-  static async getOrderById(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getOrderById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const order = await OrderService.getOrderById(id);
@@ -65,16 +66,17 @@ export class OrderController {
     }
   }
 
-  static async assignPartner(req: AuthRequest, res: Response, next: NextFunction) {
+  static async assignPartner(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const { partnerId } = req.body;
 
       if (!partnerId) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Partner ID is required'
         });
+        return;
       }
 
       const assignmentData: AssignPartnerData = {
@@ -94,23 +96,25 @@ export class OrderController {
     }
   }
 
-  static async updateStatus(req: AuthRequest, res: Response, next: NextFunction) {
+  static async updateStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const { id } = req.params;
       const { status } = req.body;
 
       if (!status) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Status is required'
         });
+        return;
       }
 
       const statusData: StatusUpdateData = {

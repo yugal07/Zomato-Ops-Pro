@@ -13,30 +13,32 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Access token required'
       });
+      return;
     }
 
     const decoded = jwt.verify(token, authConfig.jwtSecret) as JWTPayload;
     
     const user = await User.findById(decoded.userId).select('-password');
     if (!user || !user.isActive) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Invalid token or user deactivated'
       });
+      return;
     }
 
     req.user = {
-      _id: user._id.toString(),
+      _id: (user._id as any).toString(),
       email: user.email,
       name: user.name,
       role: user.role
@@ -44,7 +46,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 
     next();
   } catch (error) {
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       message: 'Invalid or expired token'
     });
@@ -52,12 +54,13 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 };
 
 export const authorizeRoles = (...roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         message: 'Access denied. Insufficient permissions.'
       });
+      return;
     }
     next();
   };

@@ -5,7 +5,7 @@ import { AuthRequest } from '../middleware/auth';
 import { LocationUpdate } from '../types/delivery.types';
 
 export class DeliveryController {
-  static async getAvailablePartners(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getAvailablePartners(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const partners = await DeliveryService.getAvailablePartners();
 
@@ -18,13 +18,14 @@ export class DeliveryController {
     }
   }
 
-  static async toggleAvailability(req: AuthRequest, res: Response, next: NextFunction) {
+  static async toggleAvailability(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const partner = await DeliveryService.toggleAvailability(req.user._id);
@@ -39,22 +40,24 @@ export class DeliveryController {
     }
   }
 
-  static async updateLocation(req: AuthRequest, res: Response, next: NextFunction) {
+  static async updateLocation(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const location: LocationUpdate = req.body;
 
       if (!location.lat || !location.lng) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Latitude and longitude are required'
         });
+        return;
       }
 
       const partner = await DeliveryService.updateLocation(req.user._id, location);
@@ -69,13 +72,14 @@ export class DeliveryController {
     }
   }
 
-  static async getMyOrders(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getMyOrders(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const options = {
@@ -95,13 +99,14 @@ export class DeliveryController {
     }
   }
 
-  static async getProfile(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'User not authenticated'
         });
+        return;
       }
 
       const profile = await DeliveryService.getPartnerProfile(req.user._id);

@@ -97,7 +97,7 @@ export class OrderService {
     }
 
     // Check if partner is already assigned to this order
-    if (deliveryPartner.currentOrders.includes(order._id)) {
+    if (deliveryPartner.currentOrders.includes(order._id as any)) {
       throw new AppError('Partner is already assigned to this order', 400);
     }
 
@@ -111,7 +111,7 @@ export class OrderService {
     await order.save();
 
     // Update delivery partner
-    deliveryPartner.currentOrders.push(order._id);
+    deliveryPartner.currentOrders.push(order._id as any);
     await deliveryPartner.save();
 
     return await Order.findById(orderId)

@@ -1,7 +1,14 @@
 import { Schema, model, Document } from 'mongoose';
 import { IOrder, OrderStatus, OrderItem } from '../types/order.types';
 
-interface IOrderDocument extends Omit<IOrder, '_id'>, Document {}
+interface IOrderDocument extends Omit<IOrder, '_id'>, Document {
+  trackingUpdates?: {
+    status: OrderStatus;
+    timestamp: Date;
+    location?: { lat: number; lng: number };
+    message: string;
+  }[];
+}
 
 const orderItemSchema = new Schema<OrderItem>({
   name: {
@@ -19,6 +26,26 @@ const orderItemSchema = new Schema<OrderItem>({
     type: Number,
     required: [true, 'Price is required'],
     min: [0, 'Price cannot be negative']
+  }
+}, { _id: false });
+
+const trackingUpdateSchema = new Schema({
+  status: {
+    type: String,
+    enum: Object.values(OrderStatus),
+    required: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  location: {
+    lat: Number,
+    lng: Number
+  },
+  message: {
+    type: String,
+    required: true
   }
 }, { _id: false });
 
@@ -65,7 +92,8 @@ const orderSchema = new Schema<IOrderDocument>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Created by is required']
-  }
+  },
+  trackingUpdates: [trackingUpdateSchema]
 }, {
   timestamps: true
 });

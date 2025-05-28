@@ -11,6 +11,8 @@ import { initializeSocketService } from './services/socketService';
 import authRoutes from './routes/auth';
 import orderRoutes from './routes/orders';
 import deliveryRoutes from './routes/delivery';
+import analyticsRoutes from './routes/analytics';
+import trackingRoutes from './routes/tracking';
 
 // Load environment variables
 dotenv.config();
@@ -43,7 +45,8 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString(),
-    connectedUsers: socketService.getConnectedUsers().length
+    connectedUsers: socketService.getConnectedUsers().length,
+    socketEnabled: true
   });
 });
 
@@ -51,6 +54,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/delivery', deliveryRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/tracking', trackingRoutes);
 
 // Error handling
 app.use(notFound);
@@ -61,6 +66,7 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   console.log(`Socket.io server initialized`);
+  console.log(`Real-time features enabled`);
 });
 
 export default app;

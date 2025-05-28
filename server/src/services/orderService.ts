@@ -1,9 +1,12 @@
 import Order from '../models/Order';
 import DeliveryPartner from '../models/DeliveryPartner';
+import User from '../models/User';
 import { CreateOrderData, AssignPartnerData, StatusUpdateData, OrderStatus } from '../types/order.types';
 import { QueryOptions, PaginatedResponse } from '../types/api.types';
 import { AppError } from '../middleware/errorHandler';
 import { validateOrderData, validateStatusTransition, calculateDispatchTime } from '../utils/helpers';
+import { getSocketService } from './socketService';
+import { OrderCreatedEvent, OrderAssignedEvent, StatusUpdatedEvent } from '../types/socket.types';
 
 export class OrderService {
   static async createOrder(orderData: CreateOrderData, createdBy: string) {
@@ -19,44 +22,30 @@ export class OrderService {
       createdBy
     });
 
-    return await Order.findById(order._id)
-      .populate('createdBy', 'name email')
-      .populate('assignedPartner', 'name email');
-  }
-
-  static async getOrders(options: QueryOptions = {}) {
-    const { page = 1, limit = 10, sort = '-createdAt', filter = {} } = options;
-    const skip = (page - 1) * limit;
-
-    const query = Order.find(filter)
-      .populate('createdBy', 'name email')
-      .populate('assignedPartner', 'name email')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    const orders = await query;
-    const total = await Order.countDocuments(filter);
-
-    return {
-      data: orders,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    } as PaginatedResponse<typeof orders[0]>;
-  }
-
-  static async getOrderById(orderId: string) {
-    const order = await Order.findById(orderId)
+    const populatedOrder = await Order.findById(order._id)
       .populate('createdBy', 'name email')
       .populate('assignedPartner', 'name email');
 
-    if (!order) {
-      throw new AppError('Order not found', 404);
+    // Emit real-time event
+    try {
+      const socketService = getSocketService();
+      const event: OrderCreatedEvent = {
+        order: populatedOrder,
+        message: `New order ${order.orderId} has been created`
+      };
+      socketService.emitOrderCreated(event);
+      
+      // Send notification
+      socketService.emitNotification({
+        type: 'success',
+        title: 'New Order',
+        message: `Order ${order.orderId} created successfully`
+      });
+    } catch (error) {
+      console.error('Socket emission error:', error);
     }
 
-    return order;
+    return populatedOrder;
   }
 
   static async assignPartner(assignmentData: AssignPartnerData) {
@@ -97,7 +86,7 @@ export class OrderService {
     }
 
     // Check if partner is already assigned to this order
-    if (deliveryPartner.currentOrders.includes(order._id as any)) {
+    if (deliveryPartner.currentOrders.includes(order._id)) {
       throw new AppError('Partner is already assigned to this order', 400);
     }
 
@@ -111,12 +100,46 @@ export class OrderService {
     await order.save();
 
     // Update delivery partner
-    deliveryPartner.currentOrders.push(order._id as any);
+    deliveryPartner.currentOrders.push(order._id);
     await deliveryPartner.save();
 
-    return await Order.findById(orderId)
+    const updatedOrder = await Order.findById(orderId)
       .populate('createdBy', 'name email')
       .populate('assignedPartner', 'name email');
+
+    // Emit real-time event
+    try {
+      const socketService = getSocketService();
+      const partnerUser = deliveryPartner.userId as any;
+      
+      const event: OrderAssignedEvent = {
+        orderId: order._id.toString(),
+        partnerId: partnerId,
+        partnerName: partnerUser.name,
+        dispatchTime: dispatchTime,
+        message: `Order ${order.orderId} has been assigned to ${partnerUser.name}`
+      };
+      
+      socketService.emitOrderAssigned(event);
+      
+      // Send notifications
+      socketService.emitNotification({
+        type: 'info',
+        title: 'Order Assigned',
+        message: `Order ${order.orderId} assigned to ${partnerUser.name}`,
+        recipient: partnerId
+      });
+      
+      socketService.emitNotification({
+        type: 'success',
+        title: 'Partner Assigned',
+        message: `${partnerUser.name} assigned to order ${order.orderId}`
+      });
+    } catch (error) {
+      console.error('Socket emission error:', error);
+    }
+
+    return updatedOrder;
   }
 
   static async updateOrderStatus(statusData: StatusUpdateData, updatedBy: string) {
@@ -131,6 +154,8 @@ export class OrderService {
     if (!validateStatusTransition(order.status, status)) {
       throw new AppError(`Invalid status transition from ${order.status} to ${status}`, 400);
     }
+
+    const oldStatus = order.status;
 
     // Update order status
     order.status = status;
@@ -148,9 +173,77 @@ export class OrderService {
 
     await order.save();
 
-    return await Order.findById(orderId)
+    const updatedOrder = await Order.findById(orderId)
       .populate('createdBy', 'name email')
       .populate('assignedPartner', 'name email');
+
+    // Get user who updated the status
+    const updatedByUser = await User.findById(updatedBy);
+
+    // Emit real-time event
+    try {
+      const socketService = getSocketService();
+      
+      const event: StatusUpdatedEvent = {
+        orderId: orderId,
+        oldStatus: oldStatus,
+        newStatus: status,
+        updatedBy: updatedBy,
+        updatedByName: updatedByUser?.name || 'Unknown',
+        timestamp: new Date(),
+        message: `Order ${order.orderId} status changed from ${oldStatus} to ${status}`
+      };
+      
+      socketService.emitStatusUpdated(event);
+      
+      // Send notification
+      socketService.emitNotification({
+        type: 'info',
+        title: 'Status Updated',
+        message: `Order ${order.orderId} is now ${status}`,
+        data: { orderId, newStatus: status }
+      });
+    } catch (error) {
+      console.error('Socket emission error:', error);
+    }
+
+    return updatedOrder;
+  }
+
+  // ... (keep other existing methods unchanged)
+  static async getOrders(options: QueryOptions = {}) {
+    const { page = 1, limit = 10, sort = '-createdAt', filter = {} } = options;
+    const skip = (page - 1) * limit;
+
+    const query = Order.find(filter)
+      .populate('createdBy', 'name email')
+      .populate('assignedPartner', 'name email')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    const orders = await query;
+    const total = await Order.countDocuments(filter);
+
+    return {
+      data: orders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    } as PaginatedResponse<typeof orders[0]>;
+  }
+
+  static async getOrderById(orderId: string) {
+    const order = await Order.findById(orderId)
+      .populate('createdBy', 'name email')
+      .populate('assignedPartner', 'name email');
+
+    if (!order) {
+      throw new AppError('Order not found', 404);
+    }
+
+    return order;
   }
 
   static async getOrdersByPartner(partnerId: string, options: QueryOptions = {}) {

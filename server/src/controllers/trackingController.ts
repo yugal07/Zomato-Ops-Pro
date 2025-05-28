@@ -3,7 +3,7 @@ import { TrackingService } from '../services/trackingService';
 import { AuthRequest } from '../middleware/auth';
 
 export class TrackingController {
-  static async getOrderTracking(req: AuthRequest, res: Response, next: NextFunction) {
+  static async getOrderTracking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { orderId } = req.params;
       const tracking = await TrackingService.getOrderTracking(orderId);
@@ -17,16 +17,17 @@ export class TrackingController {
     }
   }
 
-  static async subscribeToTracking(req: AuthRequest, res: Response, next: NextFunction) {
+  static async subscribeToTracking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { orderId } = req.params;
       const socketId = req.body.socketId;
 
       if (!socketId) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Socket ID is required'
         });
+        return;
       }
 
       await TrackingService.subscribeToOrderTracking(socketId, orderId);

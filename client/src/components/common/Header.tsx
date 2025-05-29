@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LogOut, 
   User, 
@@ -9,31 +10,14 @@ import {
   Shield, 
   Truck,
   Search,
-  Sun,
-  Moon,
   ChevronDown,
   Activity,
-  HelpCircle
+  HelpCircle,
+  CheckCircle
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-// Mock auth hook
-const useAuth = () => ({
-  authState: {
-    user: {
-      _id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'manager',
-      isActive: true
-    },
-    isAuthenticated: true
-  },
-  logout: async () => {
-    console.log('Logging out...');
-  }
-});
-
-// Mock notifications
+// Mock notifications for demo - in real app, these would come from your backend
 const mockNotifications = [
   {
     id: 1,
@@ -67,12 +51,13 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   
   const { authState, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -94,7 +79,7 @@ const Header: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      console.log('Logged out successfully');
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -114,8 +99,9 @@ const Header: React.FC = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+  const handleNavigation = (href: string) => {
+    navigate(href);
+    setIsMobileMenuOpen(false);
   };
 
   if (!authState.isAuthenticated || !authState.user) {
@@ -157,13 +143,17 @@ const Header: React.FC = () => {
       .slice(0, 2);
   };
 
+  const isCurrentPath = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center flex-shrink-0">
-            <button className="flex items-center space-x-3 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
                 <span className="text-white font-bold text-sm">DM</span>
               </div>
@@ -173,7 +163,7 @@ const Header: React.FC = () => {
                   {isManager ? 'Manager Portal' : 'Partner Portal'}
                 </div>
               </div>
-            </button>
+            </Link>
           </div>
 
           {/* Search Bar - Desktop */}
@@ -213,28 +203,26 @@ const Header: React.FC = () => {
           <nav className="hidden lg:flex space-x-1">
             {navigationItems.map((item) => {
               const IconComponent = item.icon;
+              const isActive = isCurrentPath(item.href);
               return (
-                <button
+                <Link
                   key={item.name}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                  to={item.href}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'text-blue-600 bg-blue-50 border border-blue-200'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
                 >
                   <IconComponent className="h-4 w-4" />
                   <span>{item.name}</span>
-                </button>
+                </Link>
               );
             })}
           </nav>
 
           {/* Right side - Actions */}
           <div className="flex items-center space-x-3">
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
-            >
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
-
             {/* Help */}
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
               <HelpCircle className="h-5 w-5" />
@@ -368,21 +356,23 @@ const Header: React.FC = () => {
                   </div>
                   
                   <div className="p-2">
-                    <button
+                    <Link
+                      to="/profile"
                       onClick={() => setIsProfileDropdownOpen(false)}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <User className="h-4 w-4 mr-3" />
                       View Profile
-                    </button>
+                    </Link>
                     
-                    <button
+                    <Link
+                      to="/settings"
                       onClick={() => setIsProfileDropdownOpen(false)}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       <Settings className="h-4 w-4 mr-3" />
                       Settings
-                    </button>
+                    </Link>
                     
                     <button
                       onClick={() => setIsProfileDropdownOpen(false)}
@@ -442,11 +432,16 @@ const Header: React.FC = () => {
             <nav className="space-y-1 px-4">
               {navigationItems.map((item) => {
                 const IconComponent = item.icon;
+                const isActive = isCurrentPath(item.href);
                 return (
                   <button
                     key={item.name}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center space-x-3 w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => handleNavigation(item.href)}
+                    className={`flex items-center space-x-3 w-full px-3 py-2 text-base font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
                   >
                     <IconComponent className="h-5 w-5" />
                     <span>{item.name}</span>

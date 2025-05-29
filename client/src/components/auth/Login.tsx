@@ -1,77 +1,98 @@
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2, LogIn } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from '../common/LoadingSpinner';
 
-// Mock auth hook for demo
-const useAuth = () => ({
-  login: async (data: any) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    if (data.email === 'error@test.com') {
-      throw new Error('Invalid credentials');
-    }
-    return { user: { role: 'manager' } };
-  },
-  authState: { isLoading: false, isAuthenticated: false, user: null }
+// Enhanced validation schema
+const loginSchema = yup.object({
+  email: yup
+    .string()
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+  rememberMe: yup.boolean().default(false)
 });
 
+type LoginFormData = yup.InferType<typeof loginSchema>;
+
 const Login: React.FC = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [touchedFields, setTouchedFields] = useState({
-    email: false,
-    password: false
+  
+  const { login, authState } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the intended destination or default based on role
+  const from = (location.state as any)?.from || null;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid, touchedFields },
+    setValue,
+    watch
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false
+    },
+    mode: 'onChange'
   });
 
-  const { login, authState } = useAuth();
+  const watchedEmail = watch('email');
+  const watchedPassword = watch('password');
 
-  // Validation
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePassword = (password: string) => {
-    return password.length >= 6;
-  };
-
-  const errors = {
-    email: touchedFields.email && !validateEmail(formData.email) ? 'Please enter a valid email address' : '',
-    password: touchedFields.password && !validatePassword(formData.password) ? 'Password must be at least 6 characters' : ''
-  };
-
-  const isValid = validateEmail(formData.email) && validatePassword(formData.password);
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === 'email' || field === 'password') {
-      setTouchedFields(prev => ({ ...prev, [field]: true }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Load remembered email if exists
+  useEffect(() => {
+    const rememberMe = localStorage.getItem('rememberMe');
+    const savedEmail = localStorage.getItem('savedEmail');
     
-    if (!isValid) return;
+    if (rememberMe === 'true' && savedEmail) {
+      setValue('email', savedEmail);
+      setValue('rememberMe', true);
+    }
+  }, [setValue]);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (authState.isAuthenticated && authState.user) {
+      setShowSuccess(true);
+      setTimeout(() => {
+        const redirectTo = from || (authState.user!.role === 'manager' ? '/manager/dashboard' : '/delivery/dashboard');
+        navigate(redirectTo, { replace: true });
+      }, 1000);
+    }
+  }, [authState.isAuthenticated, authState.user, navigate, from]);
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
       setIsSubmitting(true);
       setError('');
 
-      await login(formData);
-      setShowSuccess(true);
-      
-      // Simulate redirect
-      setTimeout(() => {
-        alert('Login successful! Redirecting to dashboard...');
-      }, 1000);
+      await login(data);
 
+      // Save email if remember me is checked
+      if (data.rememberMe) {
+        localStorage.setItem('savedEmail', data.email);
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('savedEmail');
+        localStorage.removeItem('rememberMe');
+      }
+
+      // Success state will be handled by useEffect above
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -90,23 +111,12 @@ const Login: React.FC = () => {
       delivery: { email: 'delivery@demo.com', password: 'password123' }
     };
     
-    setFormData(prev => ({
-      ...prev,
-      email: credentials[role].email,
-      password: credentials[role].password
-    }));
-    setTouchedFields({ email: true, password: true });
+    setValue('email', credentials[role].email);
+    setValue('password', credentials[role].password);
   };
 
   if (authState.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-gray-600 font-medium">Checking authentication...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen message="Checking authentication..." type="auth" />;
   }
 
   if (showSuccess) {
@@ -139,15 +149,18 @@ const Login: React.FC = () => {
           </p>
           <p className="mt-1 text-center text-xs text-gray-500">
             Or{' '}
-            <button className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <Link
+              to="/register"
+              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+            >
               create a new account
-            </button>
+            </Link>
           </p>
         </div>
 
         {/* Main Form Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* Error Alert */}
             {error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-4">
@@ -167,7 +180,7 @@ const Login: React.FC = () => {
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email address
               </label>
               <div className="relative">
@@ -176,26 +189,26 @@ const Login: React.FC = () => {
                     touchedFields.email 
                       ? errors.email 
                         ? 'text-red-400' 
-                        : formData.email 
+                        : watchedEmail 
                         ? 'text-green-400' 
                         : 'text-gray-400'
                       : 'text-gray-400'
                   }`} />
                 </div>
                 <input
+                  {...register('email')}
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  autoComplete="email"
                   className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-xl placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:z-10 sm:text-sm transition-all ${
                     errors.email
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : touchedFields.email && formData.email
+                      : touchedFields.email && watchedEmail
                       ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
                       : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
                   placeholder="Enter your email address"
                 />
-                {touchedFields.email && formData.email && !errors.email && (
+                {touchedFields.email && watchedEmail && !errors.email && (
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <CheckCircle className="h-5 w-5 text-green-400" />
                   </div>
@@ -204,14 +217,14 @@ const Login: React.FC = () => {
               {errors.email && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.email}
+                  {errors.email.message}
                 </p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -220,20 +233,20 @@ const Login: React.FC = () => {
                     touchedFields.password 
                       ? errors.password 
                         ? 'text-red-400' 
-                        : formData.password 
+                        : watchedPassword 
                         ? 'text-green-400' 
                         : 'text-gray-400'
                       : 'text-gray-400'
                   }`} />
                 </div>
                 <input
+                  {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  autoComplete="current-password"
                   className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-xl placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:z-10 sm:text-sm transition-all ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : touchedFields.password && formData.password
+                      : touchedFields.password && watchedPassword
                       ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
                       : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
@@ -254,7 +267,7 @@ const Login: React.FC = () => {
               {errors.password && (
                 <p className="mt-2 text-sm text-red-600 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.password}
+                  {errors.password.message}
                 </p>
               )}
             </div>
@@ -263,27 +276,29 @@ const Login: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
+                  {...register('rememberMe')}
                   type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
                 />
-                <label className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <button className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                <Link
+                  to="/forgot-password"
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                >
                   Forgot password?
-                </button>
+                </Link>
               </div>
             </div>
 
             {/* Submit Button */}
             <div>
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={isSubmitting || !isValid}
                 className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                   isSubmitting || !isValid
@@ -304,7 +319,7 @@ const Login: React.FC = () => {
                 )}
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Demo Credentials */}
@@ -337,13 +352,13 @@ const Login: React.FC = () => {
         <div className="text-center">
           <p className="text-xs text-gray-500">
             By signing in, you agree to our{' '}
-            <button className="text-blue-600 hover:text-blue-500">
+            <Link to="/terms" className="text-blue-600 hover:text-blue-500">
               Terms of Service
-            </button>{' '}
+            </Link>{' '}
             and{' '}
-            <button className="text-blue-600 hover:text-blue-500">
+            <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
               Privacy Policy
-            </button>
+            </Link>
           </p>
         </div>
       </div>

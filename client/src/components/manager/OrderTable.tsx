@@ -11,11 +11,14 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
-  UserPlus
+  UserPlus,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import apiService from '../../services/api';
 import PartnerAssignmentModal from './PartnerAssignmentModal';
 import OrderDetailsModal from './OrderDetailsModal';
+import { ApiResponse, OrdersResponse } from '../../types';
 
 interface Order {
   _id: string;
@@ -65,17 +68,16 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
       setLoading(true);
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '10',
-        sort: '-createdAt'
+        limit: '10'
       });
 
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
 
-      const response = await apiService.get(`/orders?${params}`);
-      setOrders(response.data.data);
-      setTotalPages(response.data.totalPages);
+      const response = await apiService.get<ApiResponse<OrdersResponse>>(`/orders?${params}`);
+      setOrders(response.data?.data || []);
+      setTotalPages(response.data?.totalPages || 1);
     } catch (error) {
       console.error('Failed to load orders:', error);
     } finally {

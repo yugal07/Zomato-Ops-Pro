@@ -12,8 +12,7 @@ import {
   Search,
   ChevronDown,
   Activity,
-  HelpCircle,
-  CheckCircle
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 

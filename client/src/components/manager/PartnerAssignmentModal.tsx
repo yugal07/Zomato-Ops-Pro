@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, MapPin, Clock, Package, CheckCircle, AlertCircle, Truck } from 'lucide-react';
 import apiService from '../../services/api';
+import { ApiResponse } from '../../types';
 
 interface DeliveryPartner {
   _id: string;
@@ -54,8 +55,8 @@ const PartnerAssignmentModal: React.FC<PartnerAssignmentModalProps> = ({
   const loadAvailablePartners = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/delivery/partners');
-      setPartners(response.data);
+      const response = await apiService.get<ApiResponse<DeliveryPartner[]>>('/delivery/partners');
+      setPartners(response.data || []);
     } catch (error) {
       console.error('Failed to load partners:', error);
       setError('Failed to load available partners');

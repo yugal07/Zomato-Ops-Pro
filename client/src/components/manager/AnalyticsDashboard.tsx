@@ -10,36 +10,13 @@ import {
   Download,
   Calendar,
   Target,
-  AlertCircle
+  AlertCircle,
+  CheckCircle,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import apiService from '../../services/api';
-
-interface AnalyticsData {
-  orderMetrics: {
-    totalOrders: number;
-    ordersByStatus: Record<string, number>;
-    averagePrepTime: number;
-    averageDeliveryTime: number;
-    recentOrders: any[];
-  };
-  deliveryMetrics: {
-    totalPartners: number;
-    availablePartners: number;
-    busyPartners: number;
-    averageOrdersPerPartner: number;
-    partnerWorkload: Array<{
-      partnerId: string;
-      partnerName: string;
-      currentOrders: number;
-      isAvailable: boolean;
-    }>;
-  };
-  realTimeData: {
-    connectedUsers: number;
-    activeOrders: number;
-    pendingAssignments: number;
-  };
-}
+import { ApiResponse, AnalyticsData } from '../../types';
 
 const AnalyticsDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -57,8 +34,8 @@ const AnalyticsDashboard: React.FC = () => {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/analytics/system?timeRange=${timeRange}`);
-      setAnalytics(response.data);
+      const response = await apiService.get<ApiResponse<AnalyticsData>>(`/analytics/system?timeRange=${timeRange}`);
+      setAnalytics(response.data || null);
     } catch (error) {
       console.error('Failed to load analytics:', error);
     } finally {

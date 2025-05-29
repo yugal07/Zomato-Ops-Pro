@@ -16,14 +16,14 @@ interface CreateOrderData {
   prepTime: number;
 }
 
-const orderSchema = yup.object({
+const orderSchema = yup.object().shape({
   items: yup.array().of(
-    yup.object({
+    yup.object().shape({
       name: yup.string().required('Item name is required').min(2, 'Name must be at least 2 characters'),
       quantity: yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
       price: yup.number().required('Price is required').min(0, 'Price cannot be negative')
-    })
-  ).min(1, 'At least one item is required'),
+    }).required()
+  ).min(1, 'At least one item is required').required(),
   prepTime: yup.number().required('Prep time is required').min(1, 'Prep time must be at least 1 minute').max(120, 'Prep time cannot exceed 120 minutes')
 });
 

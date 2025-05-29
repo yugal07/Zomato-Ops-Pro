@@ -47,4 +47,53 @@ export interface ApiResponse<T = any> {
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export interface OrderMetrics {
+  totalOrders: number;
+  ordersByStatus: Record<string, number>;
+  averagePrepTime: number;
+  averageDeliveryTime: number;
+  recentOrders: any[];
+}
+
+export interface DeliveryMetrics {
+  totalPartners: number;
+  availablePartners: number;
+}
+
+export interface AnalyticsData {
+  orderMetrics: {
+    totalOrders: number;
+    ordersByStatus: Record<string, number>;
+    averagePrepTime: number;
+    averageDeliveryTime: number;
+    recentOrders: any[];
+  };
+  deliveryMetrics: {
+    totalPartners: number;
+    availablePartners: number;
+    busyPartners: number;
+    averageOrdersPerPartner: number;
+    partnerWorkload: Array<{
+      partnerId: string;
+      partnerName: string;
+      currentOrders: number;
+      isAvailable: boolean;
+    }>;
+  };
+  realTimeData: {
+    connectedUsers: number;
+    activeOrders: number;
+    pendingAssignments: number;
+  };
+}
+
+export interface OrdersResponse {
+  data: any[];
+  totalPages: number;
+}
+
+export interface PartnersResponse {
+  [key: string]: any;
 } 

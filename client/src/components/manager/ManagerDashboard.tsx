@@ -17,6 +17,7 @@ import CreateOrderForm from './CreateOrderForm';
 import OrderTable from './OrderTable';
 import PartnerAssignment from './PartnerAssignment';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import { ApiResponse, OrderMetrics, DeliveryMetrics } from '../../types';
 
 interface DashboardMetrics {
   totalOrders: number;
@@ -48,18 +49,18 @@ const ManagerDashboard: React.FC = () => {
     try {
       setRefreshing(true);
       const [orderMetrics, deliveryMetrics] = await Promise.all([
-        apiService.get('/analytics/orders'),
-        apiService.get('/analytics/delivery')
+        apiService.get<ApiResponse<OrderMetrics>>('/analytics/orders'),
+        apiService.get<ApiResponse<DeliveryMetrics>>('/analytics/delivery')
       ]);
 
       setMetrics({
-        totalOrders: orderMetrics.data.totalOrders,
-        ordersByStatus: orderMetrics.data.ordersByStatus,
-        totalPartners: deliveryMetrics.data.totalPartners,
-        availablePartners: deliveryMetrics.data.availablePartners,
-        averagePrepTime: orderMetrics.data.averagePrepTime,
-        averageDeliveryTime: orderMetrics.data.averageDeliveryTime,
-        recentOrders: orderMetrics.data.recentOrders
+        totalOrders: orderMetrics.data?.totalOrders || 0,
+        ordersByStatus: orderMetrics.data?.ordersByStatus || {},
+        totalPartners: deliveryMetrics.data?.totalPartners || 0,
+        availablePartners: deliveryMetrics.data?.availablePartners || 0,
+        averagePrepTime: orderMetrics.data?.averagePrepTime || 0,
+        averageDeliveryTime: orderMetrics.data?.averageDeliveryTime || 0,
+        recentOrders: orderMetrics.data?.recentOrders || []
       });
     } catch (error) {
       console.error('Failed to load dashboard data:', error);

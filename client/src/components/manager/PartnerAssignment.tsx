@@ -11,9 +11,11 @@ import {
   Truck,
   Activity,
   MoreVertical,
-  Search
+  Search,
+  Star
 } from 'lucide-react';
 import apiService from '../../services/api';
+import { ApiResponse, PartnersResponse } from '../../types';
 
 interface DeliveryPartner {
   _id: string;
@@ -54,8 +56,8 @@ const PartnerAssignment: React.FC = () => {
   const loadPartners = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/delivery/partners');
-      setPartners(response.data);
+      const response = await apiService.get<ApiResponse<DeliveryPartner[]>>('/delivery/partners');
+      setPartners(response.data || []);
     } catch (error) {
       console.error('Failed to load partners:', error);
     } finally {

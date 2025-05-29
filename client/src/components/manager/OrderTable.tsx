@@ -81,10 +81,21 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
     loadOrders();
   }, [loadOrders]);
 
-  const filteredOrders = orders.filter(order =>
-    order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredOrders = orders.filter(order => {
+    if (!order || !order.orderId) return false;
+    
+    // If no search query, return all orders
+    if (!searchQuery || searchQuery.trim() === '') return true;
+    
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const orderIdMatch = order.orderId.toLowerCase().includes(searchTerm);
+    const itemsMatch = order.items && Array.isArray(order.items) && order.items.some(item => 
+      item && item.name && typeof item.name === 'string' && 
+      item.name.toLowerCase().includes(searchTerm)
+    );
+    
+    return orderIdMatch || itemsMatch;
+  });
 
   const getStatusConfig = (status: string) => {
     const configs = {
@@ -113,19 +124,29 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid time';
+    }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const handleAssignPartner = (order: Order) => {
@@ -241,7 +262,9 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrders.map((order) => {
-                  const statusConfig = getStatusConfig(order.status);
+                  if (!order || !order._id) return null;
+                  
+                  const statusConfig = getStatusConfig(order.status || 'PREP');
                   const StatusIcon = statusConfig.icon;
                   
                   return (
@@ -249,12 +272,12 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
                       {/* Order Details */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="font-medium text-gray-900">{order.orderId}</div>
+                          <div className="font-medium text-gray-900">{order.orderId || 'N/A'}</div>
                           <div className="text-sm text-gray-500">
-                            Created {formatDate(order.createdAt)}
+                            Created {order.createdAt ? formatDate(order.createdAt) : 'Unknown'}
                           </div>
                           <div className="text-xs text-gray-400">
-                            by {order.createdBy.name}
+                            by {order.createdBy?.name || 'Unknown'}
                           </div>
                         </div>
                       </td>
@@ -263,14 +286,14 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
                       <td className="px-6 py-4">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                            {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
                           </div>
                           <div className="text-xs text-gray-500 max-w-xs truncate">
-                            {order.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}
+                            {order.items?.map(item => `${item?.quantity || 0}x ${item?.name || 'Unknown'}`).join(', ') || 'No items'}
                           </div>
                           <div className="flex items-center space-x-1 mt-1">
                             <Clock className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">{order.prepTime}m prep</span>
+                            <span className="text-xs text-gray-500">{order.prepTime || 0}m prep</span>
                           </div>
                         </div>
                       </td>
@@ -292,10 +315,10 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {order.assignedPartner.name}
+                                {order.assignedPartner.name || 'Unknown'}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {order.assignedPartner.email}
+                                {order.assignedPartner.email || 'No email'}
                               </div>
                             </div>
                           </div>

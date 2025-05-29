@@ -6,6 +6,7 @@ import connectDB from './config/database';
 import { corsOptions } from './config/auth';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { initializeSocketService } from './services/socketService';
+import morgan from 'morgan'
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -18,6 +19,7 @@ import trackingRoutes from './routes/tracking';
 dotenv.config();
 
 const app = express();
+
 
 // Create HTTP server
 const server = createServer(app);
@@ -32,6 +34,7 @@ connectDB();
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
 
 // Make socket service available in routes
 app.use((req, res, next) => {

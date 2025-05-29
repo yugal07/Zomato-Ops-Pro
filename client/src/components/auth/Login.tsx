@@ -1,87 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2, LogIn } from 'lucide-react';
 
-// Validation schema
-const loginSchema = yup.object({
-  email: yup
-    .string()
-    .email('Please enter a valid email address')
-    .required('Email is required'),
-  password: yup
-    .string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-  rememberMe: yup.boolean().default(false)
+// Mock auth hook for demo
+const useAuth = () => ({
+  login: async (data: any) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (data.email === 'error@test.com') {
+      throw new Error('Invalid credentials');
+    }
+    return { user: { role: 'manager' } };
+  },
+  authState: { isLoading: false, isAuthenticated: false, user: null }
 });
 
-type LoginFormData = yup.InferType<typeof loginSchema>;
-
 const Login: React.FC = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { login, authState } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Get the intended destination or default based on role
-  const from = (location.state as any)?.from || null;
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue
-  } = useForm<LoginFormData>({
-    resolver: yupResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      rememberMe: false
-    }
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [touchedFields, setTouchedFields] = useState({
+    email: false,
+    password: false
   });
 
-  // Load remembered email if exists
-  useEffect(() => {
-    const rememberMe = localStorage.getItem('rememberMe');
-    const savedEmail = localStorage.getItem('savedEmail');
+  const { login, authState } = useAuth();
+
+  // Validation
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  const errors = {
+    email: touchedFields.email && !validateEmail(formData.email) ? 'Please enter a valid email address' : '',
+    password: touchedFields.password && !validatePassword(formData.password) ? 'Password must be at least 6 characters' : ''
+  };
+
+  const isValid = validateEmail(formData.email) && validatePassword(formData.password);
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'email' || field === 'password') {
+      setTouchedFields(prev => ({ ...prev, [field]: true }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    if (rememberMe === 'true' && savedEmail) {
-      setValue('email', savedEmail);
-      setValue('rememberMe', true);
-    }
-  }, [setValue]);
+    if (!isValid) return;
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (authState.isAuthenticated && authState.user) {
-      const redirectTo = from || (authState.user.role === 'manager' ? '/manager/dashboard' : '/delivery/dashboard');
-      navigate(redirectTo, { replace: true });
-    }
-  }, [authState.isAuthenticated, authState.user, navigate, from]);
-
-  const onSubmit = async (data: LoginFormData) => {
     try {
       setIsSubmitting(true);
       setError('');
 
-      await login(data);
+      await login(formData);
+      setShowSuccess(true);
+      
+      // Simulate redirect
+      setTimeout(() => {
+        alert('Login successful! Redirecting to dashboard...');
+      }, 1000);
 
-      // Save email if remember me is checked
-      if (data.rememberMe) {
-        localStorage.setItem('savedEmail', data.email);
-      } else {
-        localStorage.removeItem('savedEmail');
-      }
-
-      // Navigation will be handled by useEffect above
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -93,162 +83,272 @@ const Login: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
+  // Quick fill demo credentials
+  const fillDemoCredentials = (role: 'manager' | 'delivery') => {
+    const credentials = {
+      manager: { email: 'manager@demo.com', password: 'password123' },
+      delivery: { email: 'delivery@demo.com', password: 'password123' }
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      email: credentials[role].email,
+      password: credentials[role].password
+    }));
+    setTouchedFields({ email: true, password: true });
+  };
+
   if (authState.isLoading) {
-    return <LoadingSpinner fullScreen message="Checking authentication..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-gray-600 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900">Login Successful!</h2>
+          <p className="text-gray-600">Redirecting to your dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <Lock className="h-6 w-6 text-blue-600" />
+        {/* Header */}
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg">
+            <LogIn className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+            Welcome back
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
+            Sign in to access your dashboard
+          </p>
+          <p className="mt-1 text-center text-xs text-gray-500">
             Or{' '}
-            <Link
-              to="/register"
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-            >
+            <button className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
               create a new account
-            </Link>
+            </button>
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400" />
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    Authentication Error
-                  </h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <p>{error}</p>
+        {/* Main Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <div className="space-y-6">
+            {/* Error Alert */}
+            {error && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Sign in failed
+                    </h3>
+                    <div className="mt-1 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email address
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className={`h-5 w-5 transition-colors ${
+                    touchedFields.email 
+                      ? errors.email 
+                        ? 'text-red-400' 
+                        : formData.email 
+                        ? 'text-green-400' 
+                        : 'text-gray-400'
+                      : 'text-gray-400'
+                  }`} />
                 </div>
                 <input
-                  {...register('email')}
                   type="email"
-                  autoComplete="email"
-                  className={`appearance-none relative block w-full pl-10 pr-3 py-2 border ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-xl placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:z-10 sm:text-sm transition-all ${
+                    errors.email
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                      : touchedFields.email && formData.email
+                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
+                  placeholder="Enter your email address"
                 />
+                {touchedFields.email && formData.email && !errors.email && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                  </div>
+                )}
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.email}
+                </p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className={`h-5 w-5 transition-colors ${
+                    touchedFields.password 
+                      ? errors.password 
+                        ? 'text-red-400' 
+                        : formData.password 
+                        ? 'text-green-400' 
+                        : 'text-gray-400'
+                      : 'text-gray-400'
+                  }`} />
                 </div>
                 <input
-                  {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  className={`appearance-none relative block w-full pl-10 pr-10 py-2 border ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-xl placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:z-10 sm:text-sm transition-all ${
+                    errors.password
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                      : touchedFields.password && formData.password
+                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 transition-colors"
                   onClick={togglePasswordVisibility}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-400" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {errors.password}
+                </p>
               )}
             </div>
-          </div>
 
-          {/* Remember Me */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                {...register('rememberMe')}
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
-                Remember me
-              </label>
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
+                />
+                <label className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <button className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
-            <div className="text-sm">
-              <Link
-                to="/forgot-password"
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+            {/* Submit Button */}
+            <div>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !isValid}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  isSubmitting || !isValid
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02] active:scale-[0.98]'
+                }`}
               >
-                Forgot your password?
-              </Link>
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                    Signing in...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <LogIn className="-ml-1 mr-3 h-5 w-5" />
+                    Sign in
+                  </div>
+                )}
+              </button>
             </div>
           </div>
-
-          {/* Submit Button */}
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center">
-                  <LoadingSpinner size="sm" />
-                  <span className="ml-2">Signing in...</span>
-                </div>
-              ) : (
-                'Sign in'
-              )}
-            </button>
-          </div>
-        </form>
+        </div>
 
         {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-gray-100 rounded-md">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
-          <div className="text-xs text-gray-600 space-y-1">
-            <p><strong>Manager:</strong> manager@demo.com / password123</p>
-            <p><strong>Delivery:</strong> delivery@demo.com / password123</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4 text-center">
+            Try Demo Accounts
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => fillDemoCredentials('manager')}
+              className="p-3 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+            >
+              <div className="font-medium">Manager</div>
+              <div className="text-blue-600">manager@demo.com</div>
+            </button>
+            <button
+              onClick={() => fillDemoCredentials('delivery')}
+              className="p-3 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors border border-green-200"
+            >
+              <div className="font-medium">Delivery Partner</div>
+              <div className="text-green-600">delivery@demo.com</div>
+            </button>
           </div>
+          <p className="text-xs text-gray-500 text-center mt-3">
+            Password for both: <span className="font-mono">password123</span>
+          </p>
+        </div>
+
+        {/* Footer Links */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            By signing in, you agree to our{' '}
+            <button className="text-blue-600 hover:text-blue-500">
+              Terms of Service
+            </button>{' '}
+            and{' '}
+            <button className="text-blue-600 hover:text-blue-500">
+              Privacy Policy
+            </button>
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login; 
+export default Login;

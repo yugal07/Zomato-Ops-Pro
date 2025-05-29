@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -8,12 +8,8 @@ import {
   Activity,
   RefreshCw,
   Download,
-  Calendar,
   Target,
-  AlertCircle,
-  CheckCircle,
-  ArrowUp,
-  ArrowDown
+  AlertCircle
 } from 'lucide-react';
 import apiService from '../../services/api';
 import { ApiResponse, AnalyticsData } from '../../types';
@@ -23,15 +19,7 @@ const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
 
-  useEffect(() => {
-    loadAnalytics();
-    
-    // Set up real-time updates
-    const interval = setInterval(loadAnalytics, 30000);
-    return () => clearInterval(interval);
-  }, [timeRange]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiService.get<ApiResponse<AnalyticsData>>(`/analytics/system?timeRange=${timeRange}`);
@@ -41,7 +29,15 @@ const AnalyticsDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    loadAnalytics();
+    
+    // Set up real-time updates
+    const interval = setInterval(loadAnalytics, 30000);
+    return () => clearInterval(interval);
+  }, [loadAnalytics]);
 
   const calculateOrderEfficiency = () => {
     if (!analytics) return 0;

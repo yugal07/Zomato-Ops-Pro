@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
-  MapPin, 
-  Clock, 
-  Package, 
+  MapPin,
   CheckCircle, 
   AlertCircle, 
   RefreshCw,
   User,
-  Truck,
   Activity,
-  MoreVertical,
-  Search,
-  Star
+  Search
 } from 'lucide-react';
 import apiService from '../../services/api';
-import { ApiResponse, PartnersResponse } from '../../types';
+import { ApiResponse } from '../../types';
 
 interface DeliveryPartner {
   _id: string;

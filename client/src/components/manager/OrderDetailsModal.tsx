@@ -4,11 +4,9 @@ import {
   Package, 
   Clock, 
   User, 
-  MapPin, 
   CheckCircle, 
   Truck,
   Calendar,
-  DollarSign,
   Hash
 } from 'lucide-react';
 

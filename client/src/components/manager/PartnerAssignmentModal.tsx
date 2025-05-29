@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, MapPin, Clock, Package, CheckCircle, AlertCircle, Truck } from 'lucide-react';
+import { X, User, Clock, Package, CheckCircle, AlertCircle, Truck } from 'lucide-react';
 import apiService from '../../services/api';
 import { ApiResponse } from '../../types';
 

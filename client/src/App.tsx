@@ -6,16 +6,16 @@ import Header from './components/common/Header';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import LoadingSpinner from './components/common/LoadingSpinner';
+
+// Import Manager Components
+import ManagerDashboard from './components/manager/ManagerDashboard';
+import OrderTable from './components/manager/OrderTable';
+import PartnerAssignment from './components/manager/PartnerAssignment';
+import AnalyticsDashboard from './components/manager/AnalyticsDashboard';
+
 import './App.css';
 
-// Placeholder components for future implementation
-const ManagerDashboard = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold text-gray-900">Manager Dashboard</h1>
-    <p className="text-gray-600 mt-2">Welcome to the manager dashboard. This will be implemented in the next phase.</p>
-  </div>
-);
-
+// Placeholder component for delivery dashboard (to be implemented later)
 const DeliveryDashboard = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold text-gray-900">Delivery Dashboard</h1>
@@ -85,6 +85,36 @@ function App() {
                           element={
                             <PrivateRoute allowedRoles={['manager']}>
                               <ManagerDashboard />
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/manager/orders"
+                          element={
+                            <PrivateRoute allowedRoles={['manager']}>
+                              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                <OrderTable onRefresh={() => {}} />
+                              </div>
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/manager/partners"
+                          element={
+                            <PrivateRoute allowedRoles={['manager']}>
+                              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                <PartnerAssignment />
+                              </div>
+                            </PrivateRoute>
+                          }
+                        />
+                        <Route
+                          path="/manager/analytics"
+                          element={
+                            <PrivateRoute allowedRoles={['manager']}>
+                              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                <AnalyticsDashboard />
+                              </div>
                             </PrivateRoute>
                           }
                         />

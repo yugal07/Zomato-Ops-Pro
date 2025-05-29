@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Search, 
-  Filter, 
-  MoreVertical, 
   User, 
   Clock, 
   Package, 
@@ -11,9 +9,7 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
-  UserPlus,
-  ChevronLeft,
-  ChevronRight
+  UserPlus
 } from 'lucide-react';
 import apiService from '../../services/api';
 import PartnerAssignmentModal from './PartnerAssignmentModal';
@@ -59,11 +55,7 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    loadOrders();
-  }, [currentPage, statusFilter]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -83,7 +75,11 @@ const OrderTable: React.FC<OrderTableProps> = ({ onRefresh }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const filteredOrders = orders.filter(order =>
     order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||

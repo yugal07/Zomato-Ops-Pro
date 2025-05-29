@@ -3,8 +3,6 @@ import {
   Package, 
   Users, 
   Clock, 
-  CheckCircle, 
-  AlertCircle, 
   TrendingUp,
   Plus,
   RefreshCw,

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { X, Plus, Trash2, Package, Clock, DollarSign } from 'lucide-react';
+import { X, Plus, Trash2, Package, Clock } from 'lucide-react';
 import apiService from '../../services/api';
 
 interface OrderItem {

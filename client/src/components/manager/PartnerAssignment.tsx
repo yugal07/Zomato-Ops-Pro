@@ -7,7 +7,9 @@ import {
   RefreshCw,
   User,
   Activity,
-  Search
+  Search,
+  Clock,
+  UserX
 } from 'lucide-react';
 import apiService from '../../services/api';
 import { ApiResponse } from '../../types';
@@ -120,208 +122,217 @@ const PartnerAssignment: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header and Controls */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Delivery Partners</h2>
-            <p className="text-gray-600">Monitor and manage delivery partner availability</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Delivery Partners</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Monitor and manage delivery partner availability</p>
           </div>
           
-          <div className="flex items-center space-x-4">
-            {/* Search */}
+          <div className="flex items-center space-x-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search partners..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-
-            {/* Status Filter */}
+            
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Partners</option>
               <option value="available">Available</option>
               <option value="busy">Busy</option>
             </select>
-
+            
             <button
               onClick={loadPartners}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className="h-4 w-4" />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Partners</p>
-              <p className="text-2xl font-bold text-gray-900">{partners.length}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Partners</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{partners.length}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-500" />
+            <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-xl">
+              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Available</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {partners.filter(p => p.isAvailable && p.currentOrders.length === 0).length}
               </p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-500" />
+            <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Busy</p>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Busy</p>
+              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                 {partners.filter(p => p.currentOrders.length > 0).length}
               </p>
             </div>
-            <Activity className="h-8 w-8 text-yellow-500" />
+            <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-xl">
+              <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+            </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Offline</p>
-              <p className="text-2xl font-bold text-gray-600">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Offline</p>
+              <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
                 {partners.filter(p => !p.isAvailable).length}
               </p>
             </div>
-            <AlertCircle className="h-8 w-8 text-gray-500" />
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-xl">
+              <UserX className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Partners Grid */}
-      {filteredPartners.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No partners found</h3>
-          <p className="text-gray-500">
-            {searchQuery ? 'Try adjusting your search terms' : 'No delivery partners match the selected filter'}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredPartners.map((partner) => {
-            const statusConfig = getPartnerStatus(partner);
-            const performance = getPerformanceRating(partner.averageDeliveryTime);
-            
-            return (
-              <div key={partner._id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  {/* Partner Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {partner.userId.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </span>
+      {/* Partners List */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-12 text-center">
+        {filteredPartners.length === 0 ? (
+          <>
+            <Users className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No delivery partners found</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery ? 'Try adjusting your search terms' : 'Add delivery partners to get started'}
+            </p>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPartners.map((partner) => {
+              const statusConfig = getPartnerStatus(partner);
+              const performance = getPerformanceRating(partner.averageDeliveryTime);
+              
+              return (
+                <div key={partner._id} className="bg-white dark:bg-gray-700 rounded-xl shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
+                  <div className="p-6">
+                    {/* Partner Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {partner.userId.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white">{partner.userId.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{partner.userId.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{partner.userId.name}</h3>
-                        <p className="text-sm text-gray-500">{partner.userId.email}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`}></div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
-                        {statusConfig.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Partner Stats */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Current Orders:</span>
-                      <span className={`font-medium ${getWorkloadColor(partner.currentOrders.length)}`}>
-                        {partner.currentOrders.length}/3
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Avg Delivery Time:</span>
-                      <span className="font-medium text-gray-900">{partner.averageDeliveryTime}m</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Performance:</span>
-                      <span className={`font-medium text-sm ${performance.color}`}>
-                        {performance.rating}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Joined:</span>
-                      <span className="text-sm text-gray-900">{formatJoinDate(partner.createdAt)}</span>
-                    </div>
-                  </div>
-
-                  {/* Current Orders */}
-                  {partner.currentOrders.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Current Orders:</h4>
-                      <div className="space-y-2">
-                        {partner.currentOrders.slice(0, 2).map((order) => (
-                          <div key={order._id} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">{order.orderId}</span>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                              order.status === 'ON_ROUTE' ? 'bg-purple-100 text-purple-800' :
-                              order.status === 'PICKED' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {order.status}
-                            </span>
-                          </div>
-                        ))}
-                        {partner.currentOrders.length > 2 && (
-                          <p className="text-xs text-gray-500">
-                            +{partner.currentOrders.length - 2} more orders
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Location Info */}
-                  {partner.location.lat !== 0 && partner.location.lng !== 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="h-4 w-4" />
-                        <span>
-                          Location: {partner.location.lat.toFixed(4)}, {partner.location.lng.toFixed(4)}
+                      
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`}></div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
+                          {statusConfig.status}
                         </span>
                       </div>
                     </div>
-                  )}
+
+                    {/* Partner Stats */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Current Orders:</span>
+                        <span className={`font-medium ${getWorkloadColor(partner.currentOrders.length)}`}>
+                          {partner.currentOrders.length}/3
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Avg Delivery Time:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{partner.averageDeliveryTime}m</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Performance:</span>
+                        <span className={`font-medium text-sm ${performance.color}`}>
+                          {performance.rating}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Joined:</span>
+                        <span className="text-sm text-gray-900 dark:text-white">{formatJoinDate(partner.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    {/* Current Orders */}
+                    {partner.currentOrders.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Current Orders:</h4>
+                        <div className="space-y-2">
+                          {partner.currentOrders.slice(0, 2).map((order) => (
+                            <div key={order._id} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">{order.orderId}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                                order.status === 'ON_ROUTE' ? 'bg-purple-100 text-purple-800' :
+                                order.status === 'PICKED' ? 'bg-blue-100 text-blue-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {order.status}
+                              </span>
+                            </div>
+                          ))}
+                          {partner.currentOrders.length > 2 && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              +{partner.currentOrders.length - 2} more orders
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location Info */}
+                    {partner.location.lat !== 0 && partner.location.lng !== 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                          <MapPin className="h-4 w-4" />
+                          <span>
+                            Location: {partner.location.lat.toFixed(4)}, {partner.location.lng.toFixed(4)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

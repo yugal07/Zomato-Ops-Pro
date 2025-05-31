@@ -36,7 +36,7 @@ export const userSeedData = [
   {
     email: 'delivery2@zomato.com',
     password: 'password123',
-    name: 'Priya Sharma',
+    name: 'Harshit Gandhi Delivery Expert',
     role: UserRole.DELIVERY,
     isActive: true
   },

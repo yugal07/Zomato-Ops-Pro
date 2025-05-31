@@ -7,7 +7,8 @@ import {
   CheckCircle, 
   Truck,
   Calendar,
-  Hash
+  Hash,
+  ShoppingBag
 } from 'lucide-react';
 
 interface Order {
@@ -173,67 +174,72 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
             </div>
           </div>
 
-          {/* Order Information Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Order Items */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Package className="h-5 w-5 text-gray-600 mr-2" />
-                Order Items
-              </h3>
-              <div className="space-y-3">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{item.name}</h4>
-                      <p className="text-sm text-gray-500">₹{item.price.toFixed(2)} each</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">×{item.quantity}</p>
-                      <p className="text-sm text-gray-600">₹{(item.price * item.quantity).toFixed(2)}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="border-t border-gray-200 pt-3 mt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900">Total ({totalQuantity} items):</span>
-                    <span className="text-lg font-bold text-gray-900">₹{totalAmount.toFixed(2)}</span>
-                  </div>
-                </div>
+          {/* Order Information */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <Package className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+              Order Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
+                <p className="font-medium text-gray-900 dark:text-white">{order.orderId}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusConfig(order.status).textColor} ${getStatusConfig(order.status).bgColor}`}>
+                  {getStatusConfig(order.status).label}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+                <p className="font-medium text-gray-900 dark:text-white">₹{totalAmount.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Order Time</p>
+                <p className="font-medium text-gray-900 dark:text-white">{formatTime(order.createdAt)}</p>
               </div>
             </div>
+          </div>
 
-            {/* Order Details */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Hash className="h-5 w-5 text-gray-600 mr-2" />
-                Order Information
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Order ID:</span>
-                  <span className="font-medium text-gray-900">{order.orderId}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig.textColor} ${statusConfig.bgColor}`}>
-                    {statusConfig.label}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Prep Time:</span>
-                  <span className="font-medium text-gray-900">{order.prepTime} minutes</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Created:</span>
-                  <span className="font-medium text-gray-900">{formatDate(order.createdAt)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Created By:</span>
-                  <div className="text-right">
-                    <div className="font-medium text-gray-900">{order.createdBy.name}</div>
-                    <div className="text-xs text-gray-500">{order.createdBy.email}</div>
+          {/* Customer Information */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <User className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+              Customer Information
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
+                <p className="font-medium text-gray-900 dark:text-white">{order.createdBy.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                <p className="font-medium text-gray-900 dark:text-white">{order.createdBy.email}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Items */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <ShoppingBag className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
+              Order Items
+            </h3>
+            <div className="space-y-3">
+              {order.items.map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity}</p>
                   </div>
+                  <p className="font-medium text-gray-900 dark:text-white">₹{item.price * item.quantity}</p>
+                </div>
+              ))}
+              <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                <div className="flex justify-between items-center">
+                  <p className="font-semibold text-gray-900 dark:text-white">Total</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">₹{totalAmount.toFixed(2)}</p>
                 </div>
               </div>
             </div>

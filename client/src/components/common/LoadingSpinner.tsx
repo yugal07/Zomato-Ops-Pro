@@ -2,7 +2,8 @@ import React from 'react';
 import { Loader2, Shield, Truck, CheckCircle } from 'lucide-react';
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  color?: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'gray';
   message?: string;
   fullScreen?: boolean;
   type?: 'default' | 'auth' | 'dashboard' | 'success';
@@ -11,184 +12,175 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   size = 'md', 
-  message = 'Loading...',
+  color = 'blue', 
   fullScreen = false,
-  type = 'default',
-  progress
+  message = 'Loading...'
 }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12'
+    sm: 'h-4 w-4',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12',
+    xl: 'h-16 w-16'
   };
 
-  const containerClasses = fullScreen 
-    ? 'fixed inset-0 flex items-center justify-center bg-white bg-opacity-90 z-50'
-    : 'flex items-center justify-center p-4';
+  const colorClasses = {
+    blue: 'text-blue-600',
+    green: 'text-green-600',
+    red: 'text-red-600',
+    yellow: 'text-yellow-600',
+    purple: 'text-purple-600',
+    gray: 'text-gray-600'
+  };
 
-  // Enhanced loading for authentication
-  if (type === 'auth') {
+  const spinner = (
+    <div className="flex flex-col items-center justify-center space-y-4">
+      <div className={`animate-spin ${sizeClasses[size]} ${colorClasses[color]}`}>
+        <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      </div>
+      {message && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{message}</p>
+      )}
+    </div>
+  );
+
+  if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 max-w-sm w-full mx-4">
-          <div className="flex flex-col items-center space-y-6">
-            {/* Animated Logo */}
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Shield className="h-8 w-8 text-white" />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-20 animate-pulse"></div>
-            </div>
-            
-            {/* Loading Spinner */}
-            <div className="relative">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-            
-            {/* Message */}
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {message || 'Authenticating...'}
-              </h3>
-              <p className="text-sm text-gray-500">
-                Please wait while we verify your credentials
-              </p>
-            </div>
-            
-            {/* Progress Bar */}
-            {progress !== undefined && (
-              <div className="w-full">
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span>Progress</span>
-                  <span>{progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-          </div>
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center z-50 transition-colors">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4">
+          {spinner}
         </div>
       </div>
     );
   }
 
-  // Dashboard loading
-  if (type === 'dashboard') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 max-w-sm w-full mx-4">
-          <div className="flex flex-col items-center space-y-6">
-            {/* Dashboard Icon */}
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Truck className="h-8 w-8 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full animate-bounce">
-                <div className="w-full h-full bg-blue-400 rounded-full animate-ping"></div>
-              </div>
-            </div>
-            
-            {/* Loading Dots */}
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            
-            {/* Message */}
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {message || 'Loading Dashboard...'}
-              </h3>
-              <p className="text-sm text-gray-500">
-                Setting up your workspace
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  return spinner;
+};
 
-  // Success state
-  if (type === 'success') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 max-w-sm w-full mx-4">
-          <div className="flex flex-col items-center space-y-6">
-            {/* Success Icon */}
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                <CheckCircle className="h-10 w-10 text-white" />
-              </div>
-              <div className="absolute -inset-4 bg-green-400 rounded-full opacity-20 animate-ping"></div>
-            </div>
-            
-            {/* Message */}
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-semibold text-green-900">
-                Success!
-              </h3>
-              <p className="text-sm text-green-600">
-                {message || 'Operation completed successfully'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Default loading spinner
+// Loading overlay component
+export const LoadingOverlay: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => {
   return (
-    <div className={containerClasses}>
-      <div className="flex flex-col items-center space-y-4">
-        {/* Spinner */}
-        <div className="relative">
-          <div className={`${sizeClasses[size]} animate-spin`}>
-            <svg 
-              className="w-full h-full text-blue-600" 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24"
-            >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
+    <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center z-10 transition-colors">
+      <div className="flex flex-col items-center space-y-3">
+        <div className="animate-spin h-8 w-8 text-blue-600">
+          <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+};
+
+// Button loading state
+export const ButtonSpinner: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'sm' }) => {
+  const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
+  
+  return (
+    <div className={`animate-spin ${sizeClass} text-white`}>
+      <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+    </div>
+  );
+};
+
+// Page loading component
+export const PageLoader: React.FC<{ message?: string }> = ({ message = 'Loading page...' }) => {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg p-8 max-w-sm w-full mx-4">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin h-12 w-12 text-blue-600">
+            <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
                 strokeWidth="4"
               />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
+              <path
+                className="opacity-75"
+                fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
           </div>
-        </div>
-        
-        {/* Message */}
-        {message && (
           <div className="text-center">
-            <p className="text-sm text-gray-600 font-medium">{message}</p>
-            {progress !== undefined && (
-              <div className="mt-2 w-32">
-                <div className="w-full bg-gray-200 rounded-full h-1">
-                  <div 
-                    className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Please wait</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
           </div>
-        )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Inline loading component
+export const InlineLoader: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin h-8 w-8 text-blue-600">
+            <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium text-center">{message}</p>
+        </div>
       </div>
     </div>
   );
@@ -217,17 +209,17 @@ export const SkeletonLoader: React.FC<{ lines?: number; className?: string }> = 
 // Card skeleton loader
 export const CardSkeleton: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6 animate-pulse">
       <div className="flex items-center space-x-4">
-        <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+        <div className="rounded-full bg-gray-200 dark:bg-gray-700 h-12 w-12"></div>
         <div className="space-y-2 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
         </div>
       </div>
       <div className="mt-4 space-y-2">
-        <div className="h-3 bg-gray-200 rounded"></div>
-        <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
       </div>
     </div>
   );

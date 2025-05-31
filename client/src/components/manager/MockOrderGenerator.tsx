@@ -185,7 +185,7 @@ const MockOrderGenerator: React.FC<MockOrderGeneratorProps> = ({ onOrderCreated 
   };
 
   const customerNames = [
-    'Rajesh Kumar', 'Priya Sharma', 'Amit Patel', 'Sneha Gupta',
+    'Rajesh Kumar', 'Jaideep kumaar', 'Amit Patel', 'Sneha Gupta',
     'Vikram Singh', 'Anita Rao', 'Rohit Verma', 'Kavya Nair',
     'Suresh Reddy', 'Meera Iyer', 'Arjun Joshi', 'Divya Mehta'
   ];

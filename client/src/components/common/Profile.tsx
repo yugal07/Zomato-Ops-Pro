@@ -57,12 +57,11 @@ const Profile: React.FC = () => {
 
     try {
       setSaving(true);
-      // Note: You'll need to implement the update profile endpoint
-      // await apiService.put('/auth/profile', { name: editedName });
+      const response = await apiService.updateProfile({ name: editedName });
       
-      // For now, just update locally
-      if (profileData) {
-        setProfileData({ ...profileData, name: editedName });
+      if (response.success && response.data) {
+        setProfileData(response.data);
+        setEditedName(response.data.name);
       }
       setIsEditing(false);
     } catch (err: any) {

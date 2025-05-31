@@ -77,6 +77,29 @@ export class AuthController {
     }
   }
 
+  static async updateProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      const updateData = req.body;
+      const updatedProfile = await AuthService.updateUserProfile(req.user._id, updateData);
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: updatedProfile
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static logout(req: AuthRequest, res: Response): void {
     // For JWT, logout is handled client-side by removing the token
     // In future, you could implement token blacklisting here

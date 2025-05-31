@@ -123,4 +123,24 @@ export class AuthService {
 
     return profileData;
   }
+
+  static async updateUserProfile(userId: string, updateData: { name?: string }) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Update only allowed fields
+    if (updateData.name !== undefined) {
+      if (!updateData.name.trim()) {
+        throw new AppError('Name cannot be empty', 400);
+      }
+      user.name = updateData.name.trim();
+    }
+
+    await user.save();
+
+    // Return updated profile
+    return this.getUserProfile(userId);
+  }
 }

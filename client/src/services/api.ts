@@ -78,6 +78,15 @@ class ApiService {
     }
   }
 
+  async updateProfile(data: { name?: string }): Promise<ApiResponse> {
+    try {
+      const response = await this.api.put('/auth/profile', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update profile');
+    }
+  }
+
   // Generic API methods
   async get<T>(url: string): Promise<T> {
     const response = await this.api.get(url);

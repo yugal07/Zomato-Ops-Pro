@@ -14,15 +14,10 @@ import OrderTable from './components/manager/OrderTable';
 import PartnerAssignment from './components/manager/PartnerAssignment';
 import AnalyticsDashboard from './components/manager/AnalyticsDashboard';
 
-import './App.css';
+// Import Delivery Components
+import DeliveryDashboard from './components/delivery/DeliveryDashboard';
 
-// Placeholder component for delivery dashboard (to be implemented later)
-const DeliveryDashboard = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Delivery Dashboard</h1>
-    <p className="text-gray-600 dark:text-gray-300 mt-2">Welcome to the delivery partner dashboard. This will be implemented in the next phase.</p>
-  </div>
-);
+import './App.css';
 
 const NotFound = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">

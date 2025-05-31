@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/common/PrivateRoute';
 import Header from './components/common/Header';
+import Profile from './components/common/Profile';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -74,6 +75,12 @@ function App() {
                           <Route
                             path="/"
                             element={<RoleBasedRedirect />}
+                          />
+                          
+                          {/* Profile route - accessible to all authenticated users */}
+                          <Route
+                            path="/profile"
+                            element={<Profile />}
                           />
                           
                           {/* Manager routes */}

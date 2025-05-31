@@ -14,22 +14,27 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('light');
-
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
+// Function to get initial theme
+const getInitialTheme = (): Theme => {
+  // Check if we're in the browser
+  if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme') as Theme;
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-      setThemeState(savedTheme);
-    } else if (systemPrefersDark) {
-      setThemeState('dark');
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      return savedTheme;
     }
-  }, []);
+    
+    // Check system preference
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return systemPrefersDark ? 'dark' : 'light';
+  }
+  
+  return 'light';
+};
 
-  // Apply theme to document
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+
+  // Apply theme to document whenever theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     
@@ -42,6 +47,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // Save to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only update if no theme is saved in localStorage
+      const savedTheme = localStorage.getItem('theme');
+      if (!savedTheme) {
+        setThemeState(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const toggleTheme = () => {
     setThemeState(prevTheme => prevTheme === 'light' ? 'dark' : 'light');

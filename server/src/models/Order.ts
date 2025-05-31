@@ -98,8 +98,7 @@ const orderSchema = new Schema<IOrderDocument>({
   timestamps: true
 });
 
-// Indexes for better query performance
-orderSchema.index({ orderId: 1 });
+// Indexes for better query performance (orderId index is already created by unique: true)
 orderSchema.index({ status: 1 });
 orderSchema.index({ assignedPartner: 1 });
 orderSchema.index({ createdBy: 1 });

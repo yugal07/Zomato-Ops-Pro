@@ -6,7 +6,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "seed": "ts-node src/scripts/seed.ts",
+    "seed:clear": "ts-node src/scripts/seed.ts --clear",
+    "seed:users": "ts-node src/scripts/seed.ts --users",
+    "seed:partners": "ts-node src/scripts/seed.ts --partners",
+    "seed:orders": "ts-node src/scripts/seed.ts --orders",
+    "seed:help": "ts-node src/scripts/seed.ts --help"
   },
   "keywords": [],
   "author": "",

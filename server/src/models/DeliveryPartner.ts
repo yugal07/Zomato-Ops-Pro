@@ -39,8 +39,7 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartnerDocument>({
   timestamps: true
 });
 
-// Indexes
-deliveryPartnerSchema.index({ userId: 1 });
+// Indexes (userId index is already created by unique: true)
 deliveryPartnerSchema.index({ isAvailable: 1 });
 deliveryPartnerSchema.index({ 'location.lat': 1, 'location.lng': 1 });
 

@@ -1,0 +1,708 @@
+{
+	"info": {
+		"_postman_id": "zomato-ops-pro-api",
+		"name": "Zomato Ops Pro API",
+		"description": "Complete API collection for Zomato Ops Pro delivery management system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "zomato-ops-pro"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"manager\",\n  \"phone\": \"+91-9876543210\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user (manager or delivery partner)"
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('authToken', response.token);",
+									"    pm.environment.set('userId', response.user.id);",
+									"    pm.environment.set('userRole', response.user.role);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@zomato.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Sets auth token in environment."
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Get current user profile"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout current user"
+					}
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, and profile management"
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders?page=1&limit=10&status=PENDING",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page"
+								},
+								{
+									"key": "status",
+									"value": "PENDING",
+									"description": "Filter by status (PENDING, CONFIRMED, PREPARING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED)"
+								}
+							]
+						},
+						"description": "Get all orders with optional filtering and pagination"
+					}
+				},
+				{
+					"name": "Create Order (Manager Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerName\": \"Rajesh Kumar\",\n  \"customerPhone\": \"+91-9876543210\",\n  \"customerEmail\": \"rajesh@example.com\",\n  \"items\": [\n    {\n      \"name\": \"Butter Chicken\",\n      \"quantity\": 2,\n      \"price\": 350\n    },\n    {\n      \"name\": \"Garlic Naan\",\n      \"quantity\": 4,\n      \"price\": 60\n    }\n  ],\n  \"deliveryAddress\": {\n    \"street\": \"123 MG Road\",\n    \"area\": \"Bandra West\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"pincode\": \"400050\",\n    \"coordinates\": {\n      \"latitude\": 19.0596,\n      \"longitude\": 72.8295\n    }\n  },\n  \"restaurantAddress\": {\n    \"street\": \"456 SV Road\",\n    \"area\": \"Andheri West\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"pincode\": \"400058\",\n    \"coordinates\": {\n      \"latitude\": 19.1136,\n      \"longitude\": 72.8697\n    }\n  },\n  \"totalAmount\": 940,\n  \"estimatedDeliveryTime\": 35\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						},
+						"description": "Create a new order (Manager role required)"
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}"
+							]
+						},
+						"description": "Get specific order details by ID"
+					}
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"CONFIRMED\",\n  \"notes\": \"Order confirmed and being prepared\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"status"
+							]
+						},
+						"description": "Update order status (PENDING, CONFIRMED, PREPARING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED)"
+					}
+				},
+				{
+					"name": "Assign Delivery Partner (Manager Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"deliveryPartnerId\": \"{{deliveryPartnerId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/assign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"assign"
+							]
+						},
+						"description": "Assign a delivery partner to an order (Manager role required)"
+					}
+				}
+			],
+			"description": "Order management endpoints for creating, updating, and tracking orders"
+		},
+		{
+			"name": "Delivery",
+			"item": [
+				{
+					"name": "Get Available Partners (Manager Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery/partners",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery",
+								"partners"
+							]
+						},
+						"description": "Get list of available delivery partners (Manager role required)"
+					}
+				},
+				{
+					"name": "Toggle Availability (Delivery Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isAvailable\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery/availability",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery",
+								"availability"
+							]
+						},
+						"description": "Toggle delivery partner availability status (Delivery role required)"
+					}
+				},
+				{
+					"name": "Update Location (Delivery Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 19.0760,\n  \"longitude\": 72.8777\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery/location",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery",
+								"location"
+							]
+						},
+						"description": "Update delivery partner's current location (Delivery role required)"
+					}
+				},
+				{
+					"name": "Get My Orders (Delivery Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery/my-orders?status=OUT_FOR_DELIVERY",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery",
+								"my-orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "OUT_FOR_DELIVERY",
+									"description": "Filter by order status"
+								}
+							]
+						},
+						"description": "Get orders assigned to current delivery partner (Delivery role required)"
+					}
+				},
+				{
+					"name": "Get Delivery Profile (Delivery Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery",
+								"profile"
+							]
+						},
+						"description": "Get delivery partner profile and statistics (Delivery role required)"
+					}
+				}
+			],
+			"description": "Delivery partner management endpoints for availability, location, and order assignment"
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Order Metrics (Manager Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/orders?period=7d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "7d",
+									"description": "Time period (1d, 7d, 30d)"
+								}
+							]
+						},
+						"description": "Get order analytics and metrics (Manager role required)"
+					}
+				},
+				{
+					"name": "Get Delivery Metrics (Manager Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/delivery?period=7d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"delivery"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "7d",
+									"description": "Time period (1d, 7d, 30d)"
+								}
+							]
+						},
+						"description": "Get delivery performance metrics (Manager role required)"
+					}
+				},
+				{
+					"name": "Get System Metrics (Manager Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/system",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"system"
+							]
+						},
+						"description": "Get system performance metrics (Manager role required)"
+					}
+				},
+				{
+					"name": "Get Connected Users (Manager Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/connected-users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"connected-users"
+							]
+						},
+						"description": "Get currently connected users via Socket.io (Manager role required)"
+					}
+				}
+			],
+			"description": "Analytics endpoints for order metrics, delivery performance, and system monitoring"
+		},
+		{
+			"name": "Tracking",
+			"item": [
+				{
+					"name": "Get Order Tracking",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tracking/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tracking",
+								"{{orderId}}"
+							]
+						},
+						"description": "Get real-time tracking information for an order"
+					}
+				},
+				{
+					"name": "Subscribe to Order Tracking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"socketId\": \"socket_id_here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tracking/{{orderId}}/subscribe",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tracking",
+								"{{orderId}}",
+								"subscribe"
+							]
+						},
+						"description": "Subscribe to real-time tracking updates for an order"
+					}
+				}
+			],
+			"description": "Real-time order tracking endpoints for location and status updates"
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Server Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Check server health and status"
+					}
+				}
+			],
+			"description": "Health check endpoint to verify server status"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userRole",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "deliveryPartnerId",
+			"value": "",
+			"type": "string"
+		}
+	]
+} 

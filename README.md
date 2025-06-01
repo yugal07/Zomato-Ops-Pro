@@ -9,7 +9,7 @@ A comprehensive delivery management system built with React, TypeScript, Node.js
 - **Interactive Dashboard** with analytics
 - **Order Management** with status updates
 - **Delivery Partner Assignment**
-- **Real-time Notifications**
+- **Real-time Notifications (Incomplete as of now, Will be completed soon)**
 - **Responsive Design** with Tailwind CSS
 - **Dark/Light Theme Support**
 

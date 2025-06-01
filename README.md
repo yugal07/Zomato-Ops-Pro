@@ -27,7 +27,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/yugal07/Zomato-Ops-Pro
 cd Zomato
 ```
 
@@ -60,20 +60,6 @@ NODE_ENV=development
 
 # CORS Configuration
 CLIENT_URL=http://localhost:3000
-```
-
-#### Start MongoDB
-Make sure MongoDB is running on your system:
-
-```bash
-# On macOS (with Homebrew)
-brew services start mongodb-community
-
-# On Ubuntu/Debian
-sudo systemctl start mongod
-
-# On Windows
-net start MongoDB
 ```
 
 #### Seed the database (Optional but recommended)

@@ -8,7 +8,6 @@ import {
   X, 
   Shield, 
   Truck,
-  Search,
   ChevronDown,
   Activity,
   Package,
@@ -20,14 +19,10 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useSocketContext } from '../../context/SocketContext';
 import ThemeToggle from './ThemeToggle';
-import NotificationCenter from './NotificationCenter';
-import RealTimeOrderUpdates from './RealTimeOrderUpdates';
 
 const Header: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   
@@ -36,11 +31,7 @@ const Header: React.FC = () => {
     connected, 
     connecting, 
     error, 
-    reconnectAttempt,
-    isLocationTracking,
-    startLocationTracking,
-    stopLocationTracking,
-    updatePartnerStatus
+    reconnectAttempt
   } = useSocketContext();
   
   const navigate = useNavigate();
@@ -80,18 +71,6 @@ const Header: React.FC = () => {
   const handleNavigation = (href: string) => {
     navigate(href);
     setIsMobileMenuOpen(false);
-  };
-
-  const toggleLocationTracking = () => {
-    if (isLocationTracking) {
-      stopLocationTracking();
-    } else {
-      startLocationTracking();
-    }
-  };
-
-  const handlePartnerStatusChange = (status: 'available' | 'busy' | 'offline' | 'on_break') => {
-    updatePartnerStatus(status);
   };
 
   if (!authState.isAuthenticated || !authState.user) {
@@ -174,24 +153,6 @@ const Header: React.FC = () => {
             </Link>
           </div>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className={`h-5 w-5 transition-colors ${isSearchFocused ? 'text-blue-500' : 'text-gray-400 dark:text-gray-500'}`} />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                placeholder="Search orders, partners, or customers..."
-              />
-            </div>
-          </div>
-
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex space-x-1">
             {navigationItems.map((item) => {
@@ -222,48 +183,8 @@ const Header: React.FC = () => {
               <span className="hidden sm:inline">{connectionStatus.text}</span>
             </div>
 
-            {/* Real-time Updates Component */}
-            <RealTimeOrderUpdates className="hidden md:block" />
-
-            {/* Delivery Partner Controls */}
-            {!isManager && (
-              <div className="flex items-center space-x-2">
-                {/* Location Tracking Toggle */}
-                <button
-                  onClick={toggleLocationTracking}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isLocationTracking
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                  title={isLocationTracking ? 'Stop location tracking' : 'Start location tracking'}
-                >
-                  <Radio className="h-4 w-4" />
-                </button>
-
-                {/* Quick Status Buttons */}
-                <div className="hidden lg:flex items-center space-x-1">
-                  <button
-                    onClick={() => handlePartnerStatusChange('available')}
-                    className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                  >
-                    Available
-                  </button>
-                  <button
-                    onClick={() => handlePartnerStatusChange('on_break')}
-                    className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
-                  >
-                    Break
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Theme Toggle */}
             <ThemeToggle />
-
-            {/* Notification Center */}
-            <NotificationCenter />
 
             {/* Profile Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
@@ -341,57 +262,6 @@ const Header: React.FC = () => {
                       {connectionStatus.description}
                     </p>
                   </div>
-
-                  {/* Delivery Partner Specific Controls */}
-                  {!isManager && (
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Location Tracking</span>
-                          <button
-                            onClick={toggleLocationTracking}
-                            className={`px-2 py-1 text-xs rounded ${
-                              isLocationTracking
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                            }`}
-                          >
-                            {isLocationTracking ? 'Stop' : 'Start'}
-                          </button>
-                        </div>
-                        
-                        <div>
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2">Status</span>
-                          <div className="grid grid-cols-2 gap-1">
-                            <button
-                              onClick={() => handlePartnerStatusChange('available')}
-                              className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                            >
-                              Available
-                            </button>
-                            <button
-                              onClick={() => handlePartnerStatusChange('busy')}
-                              className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
-                            >
-                              Busy
-                            </button>
-                            <button
-                              onClick={() => handlePartnerStatusChange('on_break')}
-                              className="px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                            >
-                              On Break
-                            </button>
-                            <button
-                              onClick={() => handlePartnerStatusChange('offline')}
-                              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                            >
-                              Offline
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                   
                   <div className="p-2">
                     <Link
@@ -434,22 +304,6 @@ const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
-            {/* Mobile Search */}
-            <div className="px-4 mb-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Search..."
-                />
-              </div>
-            </div>
-
             {/* Mobile Connection Status */}
             <div className="px-4 mb-4">
               <div className={`flex items-center justify-between p-3 rounded-lg border ${
@@ -466,47 +320,6 @@ const Header: React.FC = () => {
                 <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
               </div>
             </div>
-
-            {/* Mobile Real-time Updates */}
-            <div className="px-4 mb-4">
-              <RealTimeOrderUpdates showToasts={false} />
-            </div>
-
-            {/* Mobile Delivery Partner Controls */}
-            {!isManager && (
-              <div className="px-4 mb-4">
-                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Actions</span>
-                    <button
-                      onClick={toggleLocationTracking}
-                      className={`px-2 py-1 text-xs rounded ${
-                        isLocationTracking
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                          : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                      }`}
-                    >
-                      {isLocationTracking ? '📍 Tracking' : '📍 Start GPS'}
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => handlePartnerStatusChange('available')}
-                      className="px-3 py-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                    >
-                      🟢 Available
-                    </button>
-                    <button
-                      onClick={() => handlePartnerStatusChange('on_break')}
-                      className="px-3 py-2 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                    >
-                      ⏸️ Break
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <nav className="space-y-1 px-4">
               {navigationItems.map((item) => {

@@ -12,7 +12,9 @@ import {
   Search,
   ChevronDown,
   Activity,
-  HelpCircle
+  HelpCircle,
+  Package,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
@@ -115,14 +117,14 @@ const Header: React.FC = () => {
   const navigationItems = isManager
     ? [
         { name: 'Dashboard', href: '/manager/dashboard', icon: Activity },
-        { name: 'Orders', href: '/manager/orders', icon: Truck },
+        { name: 'Orders', href: '/manager/orders', icon: Package },
         { name: 'Partners', href: '/manager/partners', icon: User },
         { name: 'Analytics', href: '/manager/analytics', icon: Activity },
       ]
     : [
         { name: 'Dashboard', href: '/delivery/dashboard', icon: Activity },
-        { name: 'My Orders', href: '/delivery/orders', icon: Truck },
-        { name: 'History', href: '/delivery/history', icon: Activity },
+        { name: 'My Orders', href: '/delivery/orders', icon: Package },
+        { name: 'History', href: '/delivery/history', icon: Calendar },
       ];
 
   const getNotificationIcon = (type: string) => {

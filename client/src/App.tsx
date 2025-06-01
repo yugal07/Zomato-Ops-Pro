@@ -17,6 +17,8 @@ import AnalyticsDashboard from './components/manager/AnalyticsDashboard';
 
 // Import Delivery Components
 import DeliveryDashboard from './components/delivery/DeliveryDashboard';
+import DeliveryOrders from './components/delivery/DeliveryOrders';
+import DeliveryHistory from './components/delivery/DeliveryHistory';
 
 import './App.css';
 
@@ -129,6 +131,22 @@ function App() {
                             element={
                               <PrivateRoute allowedRoles={['delivery']}>
                                 <DeliveryDashboard />
+                              </PrivateRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/orders"
+                            element={
+                              <PrivateRoute allowedRoles={['delivery']}>
+                                <DeliveryOrders />
+                              </PrivateRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/history"
+                            element={
+                              <PrivateRoute allowedRoles={['delivery']}>
+                                <DeliveryHistory />
                               </PrivateRoute>
                             }
                           />

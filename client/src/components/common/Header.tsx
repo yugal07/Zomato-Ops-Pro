@@ -228,11 +228,6 @@ const Header: React.FC = () => {
             {/* Theme Toggle */}
             <ThemeToggle />
 
-            {/* Help */}
-            <button className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all">
-              <HelpCircle className="h-5 w-5" />
-            </button>
-
             {/* Notifications */}
             <div className="relative" ref={notificationDropdownRef}>
               <button
@@ -369,23 +364,6 @@ const Header: React.FC = () => {
                       <User className="h-4 w-4 mr-3" />
                       View Profile
                     </Link>
-                    
-                    <Link
-                      to="/settings"
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <Settings className="h-4 w-4 mr-3" />
-                      Settings
-                    </Link>
-                    
-                    <button
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <HelpCircle className="h-4 w-4 mr-3" />
-                      Help & Support
-                    </button>
                   </div>
                   
                   <div className="border-t border-gray-100 dark:border-gray-700 p-2">

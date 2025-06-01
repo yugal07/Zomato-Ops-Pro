@@ -26,11 +26,26 @@ export class OrderService {
       .populate('createdBy', 'name email')
       .populate('assignedPartner', 'name email');
 
+    if (!populatedOrder) {
+      throw new AppError('Failed to retrieve created order', 500);
+    }
+
     // Emit real-time event
     try {
       const socketService = getSocketService();
       const event: OrderCreatedEvent = {
-        order: populatedOrder,
+        order: {
+          _id: String(populatedOrder._id),
+          orderId: populatedOrder.orderId,
+          items: populatedOrder.items,
+          prepTime: populatedOrder.prepTime,
+          status: populatedOrder.status,
+          createdBy: {
+            name: (populatedOrder.createdBy as any)?.name || 'Unknown',
+            email: (populatedOrder.createdBy as any)?.email || 'Unknown'
+          },
+          createdAt: populatedOrder.createdAt
+        },
         message: `New order ${order.orderId} has been created`
       };
       socketService.emitOrderCreated(event);

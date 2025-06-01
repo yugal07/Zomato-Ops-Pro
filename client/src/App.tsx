@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SocketProvider } from './context/SocketContext';
 import PrivateRoute from './components/common/PrivateRoute';
 import Header from './components/common/Header';
 import Profile from './components/common/Profile';
@@ -69,93 +70,95 @@ function App() {
                 path="/*"
                 element={
                   <PrivateRoute>
-                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-                      <Header />
-                      <main>
-                        <Routes>
-                          {/* Root redirect based on role */}
-                          <Route
-                            path="/"
-                            element={<RoleBasedRedirect />}
-                          />
-                          
-                          {/* Profile route - accessible to all authenticated users */}
-                          <Route
-                            path="/profile"
-                            element={<Profile />}
-                          />
-                          
-                          {/* Manager routes */}
-                          <Route
-                            path="/manager/dashboard"
-                            element={
-                              <PrivateRoute allowedRoles={['manager']}>
-                                <ManagerDashboard />
-                              </PrivateRoute>
-                            }
-                          />
-                          <Route
-                            path="/manager/orders"
-                            element={
-                              <PrivateRoute allowedRoles={['manager']}>
-                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                                  <OrderTable onRefresh={() => {}} />
-                                </div>
-                              </PrivateRoute>
-                            }
-                          />
-                          <Route
-                            path="/manager/partners"
-                            element={
-                              <PrivateRoute allowedRoles={['manager']}>
-                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                                  <PartnerAssignment />
-                                </div>
-                              </PrivateRoute>
-                            }
-                          />
-                          <Route
-                            path="/manager/analytics"
-                            element={
-                              <PrivateRoute allowedRoles={['manager']}>
-                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                                  <AnalyticsDashboard />
-                                </div>
-                              </PrivateRoute>
-                            }
-                          />
-                          
-                          {/* Delivery routes */}
-                          <Route
-                            path="/delivery/dashboard"
-                            element={
-                              <PrivateRoute allowedRoles={['delivery']}>
-                                <DeliveryDashboard />
-                              </PrivateRoute>
-                            }
-                          />
-                          <Route
-                            path="/delivery/orders"
-                            element={
-                              <PrivateRoute allowedRoles={['delivery']}>
-                                <DeliveryOrders />
-                              </PrivateRoute>
-                            }
-                          />
-                          <Route
-                            path="/delivery/history"
-                            element={
-                              <PrivateRoute allowedRoles={['delivery']}>
-                                <DeliveryHistory />
-                              </PrivateRoute>
-                            }
-                          />
-                          
-                          {/* 404 route */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </main>
-                    </div>
+                    <SocketProvider>
+                      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+                        <Header />
+                        <main>
+                          <Routes>
+                            {/* Root redirect based on role */}
+                            <Route
+                              path="/"
+                              element={<RoleBasedRedirect />}
+                            />
+                            
+                            {/* Profile route - accessible to all authenticated users */}
+                            <Route
+                              path="/profile"
+                              element={<Profile />}
+                            />
+                            
+                            {/* Manager routes */}
+                            <Route
+                              path="/manager/dashboard"
+                              element={
+                                <PrivateRoute allowedRoles={['manager']}>
+                                  <ManagerDashboard />
+                                </PrivateRoute>
+                              }
+                            />
+                            <Route
+                              path="/manager/orders"
+                              element={
+                                <PrivateRoute allowedRoles={['manager']}>
+                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                    <OrderTable onRefresh={() => {}} />
+                                  </div>
+                                </PrivateRoute>
+                              }
+                            />
+                            <Route
+                              path="/manager/partners"
+                              element={
+                                <PrivateRoute allowedRoles={['manager']}>
+                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                    <PartnerAssignment />
+                                  </div>
+                                </PrivateRoute>
+                              }
+                            />
+                            <Route
+                              path="/manager/analytics"
+                              element={
+                                <PrivateRoute allowedRoles={['manager']}>
+                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                    <AnalyticsDashboard />
+                                  </div>
+                                </PrivateRoute>
+                              }
+                            />
+                            
+                            {/* Delivery routes */}
+                            <Route
+                              path="/delivery/dashboard"
+                              element={
+                                <PrivateRoute allowedRoles={['delivery']}>
+                                  <DeliveryDashboard />
+                                </PrivateRoute>
+                              }
+                            />
+                            <Route
+                              path="/delivery/orders"
+                              element={
+                                <PrivateRoute allowedRoles={['delivery']}>
+                                  <DeliveryOrders />
+                                </PrivateRoute>
+                              }
+                            />
+                            <Route
+                              path="/delivery/history"
+                              element={
+                                <PrivateRoute allowedRoles={['delivery']}>
+                                  <DeliveryHistory />
+                                </PrivateRoute>
+                              }
+                            />
+                            
+                            {/* 404 route */}
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </main>
+                      </div>
+                    </SocketProvider>
                   </PrivateRoute>
                 }
               />

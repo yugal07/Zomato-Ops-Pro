@@ -1,10 +1,9 @@
+// client/src/components/common/Header.tsx - Enhanced with Socket Integration
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LogOut, 
   User, 
-  Settings, 
-  Bell, 
   Menu, 
   X, 
   Shield, 
@@ -12,52 +11,38 @@ import {
   Search,
   ChevronDown,
   Activity,
-  HelpCircle,
   Package,
-  Calendar
+  Calendar,
+  Wifi,
+  WifiOff,
+  Radio
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSocketContext } from '../../context/SocketContext';
 import ThemeToggle from './ThemeToggle';
-
-// Mock notifications for demo - in real app, these would come from your backend
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'success',
-    title: 'Order Completed',
-    message: 'Order #12345 has been successfully delivered',
-    time: '2 min ago',
-    read: false
-  },
-  {
-    id: 2,
-    type: 'warning',
-    title: 'Delivery Delayed',
-    message: 'Order #12344 is running 15 minutes behind schedule',
-    time: '10 min ago',
-    read: false
-  },
-  {
-    id: 3,
-    type: 'info',
-    title: 'New Partner Available',
-    message: 'Sarah Johnson is now available for deliveries',
-    time: '1 hour ago',
-    read: true
-  }
-];
+import NotificationCenter from './NotificationCenter';
+import RealTimeOrderUpdates from './RealTimeOrderUpdates';
 
 const Header: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-  const notificationDropdownRef = useRef<HTMLDivElement>(null);
   
   const { authState, logout } = useAuth();
+  const { 
+    connected, 
+    connecting, 
+    error, 
+    reconnectAttempt,
+    isLocationTracking,
+    startLocationTracking,
+    stopLocationTracking,
+    updatePartnerStatus
+  } = useSocketContext();
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -66,9 +51,6 @@ const Header: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
-      }
-      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) {
-        setIsNotificationDropdownOpen(false);
       }
     };
 
@@ -89,12 +71,6 @@ const Header: React.FC = () => {
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
-    setIsNotificationDropdownOpen(false);
-  };
-
-  const toggleNotificationDropdown = () => {
-    setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
-    setIsProfileDropdownOpen(false);
   };
 
   const toggleMobileMenu = () => {
@@ -106,13 +82,24 @@ const Header: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const toggleLocationTracking = () => {
+    if (isLocationTracking) {
+      stopLocationTracking();
+    } else {
+      startLocationTracking();
+    }
+  };
+
+  const handlePartnerStatusChange = (status: 'available' | 'busy' | 'offline' | 'on_break') => {
+    updatePartnerStatus(status);
+  };
+
   if (!authState.isAuthenticated || !authState.user) {
     return null;
   }
 
   const { user } = authState;
   const isManager = user.role === 'manager';
-  const unreadNotifications = mockNotifications.filter(n => !n.read).length;
 
   const navigationItems = isManager
     ? [
@@ -127,15 +114,6 @@ const Header: React.FC = () => {
         { name: 'History', href: '/delivery/history', icon: Calendar },
       ];
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success': return '✅';
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      default: return 'ℹ️';
-    }
-  };
-
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -148,6 +126,34 @@ const Header: React.FC = () => {
   const isCurrentPath = (path: string) => {
     return location.pathname === path;
   };
+
+  const getConnectionStatusInfo = () => {
+    if (connected) {
+      return {
+        icon: Wifi,
+        color: 'text-green-500',
+        text: 'Connected',
+        description: 'Real-time updates active'
+      };
+    } else if (connecting || reconnectAttempt > 0) {
+      return {
+        icon: Radio,
+        color: 'text-yellow-500',
+        text: reconnectAttempt > 0 ? `Reconnecting (${reconnectAttempt})` : 'Connecting...',
+        description: 'Attempting to establish connection'
+      };
+    } else {
+      return {
+        icon: WifiOff,
+        color: 'text-red-500',
+        text: 'Disconnected',
+        description: error || 'Connection lost'
+      };
+    }
+  };
+
+  const connectionStatus = getConnectionStatusInfo();
+  const ConnectionIcon = connectionStatus.icon;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 transition-colors">
@@ -183,21 +189,6 @@ const Header: React.FC = () => {
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
                 placeholder="Search orders, partners, or customers..."
               />
-              {searchQuery && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                  <div className="p-2 text-sm text-gray-500 dark:text-gray-400">
-                    Search results for "{searchQuery}"
-                  </div>
-                  <div className="border-t border-gray-100 dark:border-gray-700 p-2">
-                    <button className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded text-sm text-gray-900 dark:text-white">
-                      Order #12345 - John Smith
-                    </button>
-                    <button className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded text-sm text-gray-900 dark:text-white">
-                      Partner: Sarah Johnson
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -225,76 +216,54 @@ const Header: React.FC = () => {
 
           {/* Right side - Actions */}
           <div className="flex items-center space-x-3">
+            {/* Connection Status */}
+            <div className={`flex items-center space-x-2 px-2 py-1 rounded-lg text-xs ${connectionStatus.color}`}>
+              <ConnectionIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">{connectionStatus.text}</span>
+            </div>
+
+            {/* Real-time Updates Component */}
+            <RealTimeOrderUpdates className="hidden md:block" />
+
+            {/* Delivery Partner Controls */}
+            {!isManager && (
+              <div className="flex items-center space-x-2">
+                {/* Location Tracking Toggle */}
+                <button
+                  onClick={toggleLocationTracking}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isLocationTracking
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                  title={isLocationTracking ? 'Stop location tracking' : 'Start location tracking'}
+                >
+                  <Radio className="h-4 w-4" />
+                </button>
+
+                {/* Quick Status Buttons */}
+                <div className="hidden lg:flex items-center space-x-1">
+                  <button
+                    onClick={() => handlePartnerStatusChange('available')}
+                    className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                  >
+                    Available
+                  </button>
+                  <button
+                    onClick={() => handlePartnerStatusChange('on_break')}
+                    className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+                  >
+                    Break
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Theme Toggle */}
             <ThemeToggle />
 
-            {/* Notifications */}
-            <div className="relative" ref={notificationDropdownRef}>
-              <button
-                onClick={toggleNotificationDropdown}
-                className="relative p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all"
-              >
-                <Bell className="h-5 w-5" />
-                {unreadNotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </button>
-
-              {/* Notifications Dropdown */}
-              {isNotificationDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                      <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
-                        Mark all read
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="max-h-96 overflow-y-auto">
-                    {mockNotifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-b-0 ${
-                          !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg flex-shrink-0">
-                            {getNotificationIcon(notification.type)}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.title}
-                              </p>
-                              {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                              {notification.time}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="p-3 border-t border-gray-100 dark:border-gray-700">
-                    <button className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
-                      View all notifications
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Notification Center */}
+            <NotificationCenter />
 
             {/* Profile Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
@@ -320,6 +289,7 @@ const Header: React.FC = () => {
                     <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
                       {user.role}
                     </span>
+                    <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
                   </div>
                 </div>
                 <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -327,7 +297,7 @@ const Header: React.FC = () => {
 
               {/* Profile Dropdown Menu */}
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
                   <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                     <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-sm">
@@ -340,7 +310,7 @@ const Header: React.FC = () => {
                           {user.name}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                        <div className="flex items-center space-x-1 mt-1">
+                        <div className="flex items-center space-x-2 mt-1">
                           {isManager ? (
                             <Shield className="h-3 w-3 text-blue-500" />
                           ) : (
@@ -349,11 +319,79 @@ const Header: React.FC = () => {
                           <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
                             {user.role}
                           </span>
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {connectionStatus.text}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Connection Status Details */}
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Connection Status</span>
+                      <div className={`flex items-center space-x-1 ${connectionStatus.color}`}>
+                        <ConnectionIcon className="h-3 w-3" />
+                        <span className="text-xs">{connectionStatus.text}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      {connectionStatus.description}
+                    </p>
+                  </div>
+
+                  {/* Delivery Partner Specific Controls */}
+                  {!isManager && (
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Location Tracking</span>
+                          <button
+                            onClick={toggleLocationTracking}
+                            className={`px-2 py-1 text-xs rounded ${
+                              isLocationTracking
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            {isLocationTracking ? 'Stop' : 'Start'}
+                          </button>
+                        </div>
+                        
+                        <div>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2">Status</span>
+                          <div className="grid grid-cols-2 gap-1">
+                            <button
+                              onClick={() => handlePartnerStatusChange('available')}
+                              className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                            >
+                              Available
+                            </button>
+                            <button
+                              onClick={() => handlePartnerStatusChange('busy')}
+                              className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+                            >
+                              Busy
+                            </button>
+                            <button
+                              onClick={() => handlePartnerStatusChange('on_break')}
+                              className="px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                            >
+                              On Break
+                            </button>
+                            <button
+                              onClick={() => handlePartnerStatusChange('offline')}
+                              className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            >
+                              Offline
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="p-2">
                     <Link
@@ -411,6 +449,64 @@ const Header: React.FC = () => {
                 />
               </div>
             </div>
+
+            {/* Mobile Connection Status */}
+            <div className="px-4 mb-4">
+              <div className={`flex items-center justify-between p-3 rounded-lg border ${
+                connected 
+                  ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' 
+                  : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <ConnectionIcon className={`h-4 w-4 ${connectionStatus.color}`} />
+                  <span className={`text-sm font-medium ${connectionStatus.color}`}>
+                    {connectionStatus.text}
+                  </span>
+                </div>
+                <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+              </div>
+            </div>
+
+            {/* Mobile Real-time Updates */}
+            <div className="px-4 mb-4">
+              <RealTimeOrderUpdates showToasts={false} />
+            </div>
+
+            {/* Mobile Delivery Partner Controls */}
+            {!isManager && (
+              <div className="px-4 mb-4">
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Actions</span>
+                    <button
+                      onClick={toggleLocationTracking}
+                      className={`px-2 py-1 text-xs rounded ${
+                        isLocationTracking
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      {isLocationTracking ? '📍 Tracking' : '📍 Start GPS'}
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handlePartnerStatusChange('available')}
+                      className="px-3 py-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                    >
+                      🟢 Available
+                    </button>
+                    <button
+                      onClick={() => handlePartnerStatusChange('on_break')}
+                      className="px-3 py-2 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                    >
+                      ⏸️ Break
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <nav className="space-y-1 px-4">
               {navigationItems.map((item) => {

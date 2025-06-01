@@ -259,10 +259,6 @@ PORT=5000
    - Clear browser localStorage
    - Check JWT_SECRET in `.env` file
 
-## 📝 License
-
-This project is licensed under the MIT License.
-
 ## 🤝 Contributing
 
 1. Fork the repository

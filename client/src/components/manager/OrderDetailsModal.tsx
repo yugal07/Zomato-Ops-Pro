@@ -45,29 +45,29 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
     const configs = {
       PREP: {
         color: 'bg-yellow-500',
-        textColor: 'text-yellow-800',
-        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800 dark:text-yellow-200',
+        bgColor: 'bg-yellow-100 dark:bg-yellow-900',
         label: 'In Preparation',
         description: 'Order is being prepared in the kitchen'
       },
       PICKED: {
         color: 'bg-blue-500',
-        textColor: 'text-blue-800',
-        bgColor: 'bg-blue-100',
+        textColor: 'text-blue-800 dark:text-blue-200',
+        bgColor: 'bg-blue-100 dark:bg-blue-900',
         label: 'Picked Up',
         description: 'Order has been picked up by delivery partner'
       },
       ON_ROUTE: {
         color: 'bg-purple-500',
-        textColor: 'text-purple-800',
-        bgColor: 'bg-purple-100',
+        textColor: 'text-purple-800 dark:text-purple-200',
+        bgColor: 'bg-purple-100 dark:bg-purple-900',
         label: 'On Route',
         description: 'Order is on the way to customer'
       },
       DELIVERED: {
         color: 'bg-green-500',
-        textColor: 'text-green-800',
-        bgColor: 'bg-green-100',
+        textColor: 'text-green-800 dark:text-green-200',
+        bgColor: 'bg-green-100 dark:bg-green-900',
         label: 'Delivered',
         description: 'Order has been successfully delivered'
       }
@@ -111,16 +111,16 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
               <Package className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Order Details</h2>
-              <p className="text-gray-500">#{order.orderId}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Order Details</h2>
+              <p className="text-gray-500 dark:text-gray-400">#{order.orderId}</p>
             </div>
             <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig.textColor} ${statusConfig.bgColor}`}>
               {statusConfig.label}
@@ -128,16 +128,16 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Status Timeline */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Progress</h3>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Progress</h3>
             <div className="flex items-center justify-between">
               {getStatusTimeline().map((step, index) => (
                 <div key={step.status} className="flex items-center">
@@ -147,30 +147,30 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
                         ? step.current 
                           ? statusConfig.color 
                           : 'bg-green-500'
-                        : 'bg-gray-300'
+                        : 'bg-gray-300 dark:bg-gray-600'
                     }`}>
                       {step.completed ? (
                         <CheckCircle className="h-5 w-5 text-white" />
                       ) : (
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        <div className="w-3 h-3 bg-white dark:bg-gray-300 rounded-full"></div>
                       )}
                     </div>
                     <span className={`text-xs mt-2 text-center ${
-                      step.completed ? 'text-gray-900 font-medium' : 'text-gray-500'
+                      step.completed ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {step.label}
                     </span>
                   </div>
                   {index < getStatusTimeline().length - 1 && (
                     <div className={`h-1 w-16 mx-4 ${
-                      step.completed ? 'bg-green-500' : 'bg-gray-300'
+                      step.completed ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                     }`}></div>
                   )}
                 </div>
               ))}
             </div>
             <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">{statusConfig.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{statusConfig.description}</p>
             </div>
           </div>
 
@@ -247,22 +247,22 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
 
           {/* Delivery Information */}
           {(order.assignedPartner || order.dispatchTime || order.estimatedDeliveryTime) && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Truck className="h-5 w-5 text-gray-600 mr-2" />
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <Truck className="h-5 w-5 text-gray-600 dark:text-gray-400 mr-2" />
                 Delivery Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {order.assignedPartner && (
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Assigned Partner</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">Assigned Partner</h4>
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                         <User className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{order.assignedPartner.name}</p>
-                        <p className="text-sm text-gray-500">{order.assignedPartner.email}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{order.assignedPartner.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{order.assignedPartner.email}</p>
                       </div>
                     </div>
                   </div>
@@ -271,20 +271,20 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
                 <div className="space-y-3">
                   {order.dispatchTime && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 flex items-center">
+                      <span className="text-gray-600 dark:text-gray-400 flex items-center">
                         <Clock className="h-4 w-4 mr-1" />
                         Dispatch Time:
                       </span>
-                      <span className="font-medium text-gray-900">{formatTime(order.dispatchTime)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatTime(order.dispatchTime)}</span>
                     </div>
                   )}
                   {order.estimatedDeliveryTime && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 flex items-center">
+                      <span className="text-gray-600 dark:text-gray-400 flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         Est. Delivery:
                       </span>
-                      <span className="font-medium text-gray-900">{formatTime(order.estimatedDeliveryTime)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatTime(order.estimatedDeliveryTime)}</span>
                     </div>
                   )}
                 </div>
@@ -293,11 +293,11 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
           )}
 
           {/* Action Section */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Need Help?</h4>
-                <p className="text-sm text-gray-600">Contact support for order-related queries</p>
+                <h4 className="font-medium text-gray-900 dark:text-white">Need Help?</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Contact support for order-related queries</p>
               </div>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Contact Support
@@ -307,11 +307,11 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-6">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-6">
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Close
             </button>

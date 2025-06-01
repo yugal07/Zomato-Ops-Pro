@@ -25,118 +25,6 @@ interface OrderItem {
 }
 
 // API Debug Helper Component
-const APIDebugHelper: React.FC = () => {
-  const [testResult, setTestResult] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const testOrderCreation = async () => {
-    setIsLoading(true);
-    setTestResult('');
-
-    // Generate a unique order ID for the test
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    const orderId = `TEST-${timestamp}-${random}`;
-
-    const testOrder = {
-      orderId, // Include orderId in test
-      items: [
-        {
-          name: "Margherita Pizza",
-          quantity: 1,
-          price: 299
-        }
-      ],
-      prepTime: 30
-    };
-
-    try {
-      console.log('Testing order creation with data:', testOrder);
-      
-      const response = await apiService.post<any>('/orders', testOrder);
-      
-      setTestResult(`✅ SUCCESS: Order created successfully!
-Response: ${JSON.stringify(response, null, 2)}`);
-      
-      console.log('Order creation successful:', response);
-    } catch (error: any) {
-      const errorDetails = {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data
-      };
-      
-      setTestResult(`❌ ERROR: ${error.message}
-Status: ${error.response?.status} ${error.response?.statusText}
-Server Response: ${JSON.stringify(error.response?.data, null, 2)}
-Request Data Sent: ${JSON.stringify(testOrder, null, 2)}`);
-      
-      console.error('Order creation failed:', errorDetails);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const testAuth = async () => {
-    setIsLoading(true);
-    setTestResult('');
-
-    try {
-      const response = await apiService.get<any>('/auth/profile');
-      setTestResult(`✅ AUTH SUCCESS: User authenticated
-User Data: ${JSON.stringify(response.data, null, 2)}`);
-    } catch (error: any) {
-      setTestResult(`❌ AUTH ERROR: ${error.message}
-Status: ${error.response?.status}
-Response: ${JSON.stringify(error.response?.data, null, 2)}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-      <div className="flex items-center space-x-2 mb-3">
-        <Bug className="h-5 w-5 text-red-600 dark:text-red-400" />
-        <h4 className="font-medium text-red-900 dark:text-red-200">API Debug Helper</h4>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <button
-          onClick={testAuth}
-          disabled={isLoading}
-          className="flex items-center justify-center space-x-2 p-2 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 border border-green-300 dark:border-green-700 rounded text-sm transition-colors disabled:opacity-50"
-        >
-          <span className="text-green-700 dark:text-green-300">Test Auth</span>
-        </button>
-
-        <button
-          onClick={testOrderCreation}
-          disabled={isLoading}
-          className="flex items-center justify-center space-x-2 p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 border border-blue-300 dark:border-blue-700 rounded text-sm transition-colors disabled:opacity-50"
-        >
-          <span className="text-blue-700 dark:text-blue-300">Test Order Creation</span>
-        </button>
-      </div>
-
-      {testResult && (
-        <div className="bg-white dark:bg-gray-800 rounded p-3">
-          <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap overflow-x-auto max-h-40">
-            {testResult}
-          </pre>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="flex items-center justify-center p-2">
-          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-red-600 dark:text-red-400 text-sm">Testing...</span>
-        </div>
-      )}
-    </div>
-  );
-};
 
 interface MockOrderGeneratorProps {
   onOrderCreated: () => void;
@@ -373,9 +261,6 @@ const MockOrderGenerator: React.FC<MockOrderGeneratorProps> = ({ onOrderCreated 
       </div>
 
       <div className="p-6">
-        {/* Debug Helper */}
-        <APIDebugHelper />
-
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <button

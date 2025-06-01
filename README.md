@@ -10,17 +10,15 @@ A comprehensive delivery management system built with React, TypeScript, Node.js
 - **Interactive Dashboard** with analytics and metrics
 - **Order Management** with complete lifecycle tracking
 - **Delivery Partner Assignment** and management
-- **Real-time Notifications** and status updates
+- **Real-time Notifications** and status updates (Incomplete)
 - **Advanced Analytics** with performance insights
 - **Mock Order Generator** for testing and demonstration
 
 ### UI/UX Features
-- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - **Dark/Light Theme Support** with persistent preferences
 - **Modern UI** - Built with Tailwind CSS and Lucide React icons
 - **Loading States** - Smooth loading indicators and skeleton screens
 - **Error Handling** - User-friendly error messages and validation
-- **Form Validation** - Client and server-side validation with real-time feedback
 - **Profile Management** - Complete user profile editing capabilities
 
 ### Advanced Features

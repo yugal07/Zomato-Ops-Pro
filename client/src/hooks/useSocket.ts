@@ -389,20 +389,24 @@ export const useSocket = (options: UseSocketOptions = {}) => {
 
   // Notification management
   const addNotification = useCallback((notification: any) => {
-    const id = Date.now().toString();
-    setNotifications(prev => [{
-      ...notification,
-      id,
-      read: false
-    }, ...prev.slice(0, 49)]); // Keep last 50 notifications
+  const id = Date.now().toString() + Math.random().toString(36).substring(2);
+  const newNotification = {
+    ...notification,
+    id,
+    read: false,
+    timestamp: new Date()
+  };
+  
+  setNotifications(prev => [newNotification, ...prev.slice(0, 49)]); // Keep last 50 notifications
 
-    // Auto-remove non-persistent notifications after delay
-    if (!notification.persistent) {
-      setTimeout(() => {
-        removeNotification(id);
-      }, notification.autoClose || 5000);
-    }
-  }, []);
+  // Auto-remove non-persistent notifications after a longer delay
+  if (!notification.persistent) {
+    const autoCloseTime = notification.autoClose || 15000; // Increased to 15 seconds default
+    setTimeout(() => {
+      removeNotification(id);
+    }, autoCloseTime);
+  }
+}, []);
 
   const removeNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));

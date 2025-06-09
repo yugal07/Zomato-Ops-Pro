@@ -1,4 +1,4 @@
-// client/src/components/common/NotificationCenter.tsx
+// client/src/components/common/NotificationCenter.tsx - Fixed version
 import React, { useState } from 'react';
 import { 
   Bell, 
@@ -8,7 +8,8 @@ import {
   Info, 
   AlertCircle,
   ExternalLink,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { useSocketContext } from '../../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
@@ -82,6 +83,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
     ? unreadNotifications 
     : notifications;
 
+  // Sort notifications by timestamp (newest first)
+  const sortedNotifications = [...filteredNotifications].sort((a, b) => {
+    const timeA = new Date(a.timestamp).getTime();
+    const timeB = new Date(b.timestamp).getTime();
+    return timeB - timeA;
+  });
+
   return (
     <div className={`relative ${className}`}>
       {/* Notification Bell */}
@@ -106,7 +114,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
 
       {/* Notification Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[32rem] overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
@@ -158,7 +166,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
               
               {notifications.length > 0 && (
                 <button
-                  onClick={clearAllNotifications}
+                  onClick={() => {
+                    clearAllNotifications();
+                    setIsOpen(false);
+                  }}
                   className="ml-auto text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                 >
                   Clear All
@@ -169,7 +180,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
 
           {/* Notifications List */}
           <div className="max-h-80 overflow-y-auto">
-            {filteredNotifications.length === 0 ? (
+            {sortedNotifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
                 <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
@@ -180,7 +191,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                 </p>
               </div>
             ) : (
-              filteredNotifications.map((notification) => (
+              sortedNotifications.map((notification) => (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
@@ -194,14 +205,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between">
                         <h4 className={`text-sm font-medium text-gray-900 dark:text-white ${
                           !notification.read ? 'font-semibold' : ''
                         }`}>
                           {notification.title}
                         </h4>
                         
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 ml-2">
                           {!notification.read && (
                             <button
                               onClick={(e) => {
@@ -211,7 +222,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                               className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
                               title="Mark as read"
                             >
-                              <CheckCircle2 className="h-3 w-3" />
+                              <CheckCircle2 className="h-3 w-3 text-blue-500" />
                             </button>
                           )}
                           
@@ -221,21 +232,32 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                         </div>
                       </div>
                       
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 pr-4">
                         {notification.message}
                       </p>
                       
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-gray-500 dark:text-gray-500">
-                          {formatTime(notification.timestamp)}
-                        </span>
+                        <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          <span>{formatTime(notification.timestamp)}</span>
+                        </div>
                         
                         {notification.actionText && notification.actionUrl && (
                           <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                            {notification.actionText}
+                            {notification.actionText} →
                           </span>
                         )}
                       </div>
+
+                      {/* Show if notification is persistent */}
+                      {notification.persistent && (
+                        <div className="flex items-center space-x-1 mt-1">
+                          <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
+                          <span className="text-xs text-orange-600 dark:text-orange-400">
+                            Important
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -244,24 +266,27 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
           </div>
 
           {/* Footer Actions */}
-          {filteredNotifications.length > 0 && (
+          {sortedNotifications.length > 0 && (
             <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {unreadNotifications.length} unread
+                  {unreadNotifications.length} unread • {notifications.length} total
                 </span>
                 
-                {unreadNotifications.length > 0 && (
-                  <button
-                    onClick={() => {
-                      unreadNotifications.forEach(n => markNotificationAsRead(n.id));
-                    }}
-                    className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                  >
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>Mark all as read</span>
-                  </button>
-                )}
+                <div className="flex items-center space-x-2">
+                  {unreadNotifications.length > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        unreadNotifications.forEach(n => markNotificationAsRead(n.id));
+                      }}
+                      className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                    >
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>Mark all read</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}

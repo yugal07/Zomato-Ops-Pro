@@ -63,7 +63,7 @@ const PartnerAssignment: React.FC = () => {
   };
 
   const filteredPartners = partners.filter(partner => {
-    const matchesSearch = partner.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const matchesSearch = partner.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          partner.userId.email.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (!matchesSearch) return false;

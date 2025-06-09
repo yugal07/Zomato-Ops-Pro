@@ -1,4 +1,4 @@
-// client/src/components/common/Header.tsx - Enhanced with Socket Integration
+// client/src/components/common/Header.tsx - Updated with NotificationCenter
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useSocketContext } from '../../context/SocketContext';
 import ThemeToggle from './ThemeToggle';
+import NotificationCenter from './NotificationCenter'; // Add this import
 
 const Header: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -182,6 +183,9 @@ const Header: React.FC = () => {
               <ConnectionIcon className="h-4 w-4" />
               <span className="hidden sm:inline">{connectionStatus.text}</span>
             </div>
+
+            {/* ADD NOTIFICATION CENTER HERE */}
+            <NotificationCenter />
 
             {/* Theme Toggle */}
             <ThemeToggle />

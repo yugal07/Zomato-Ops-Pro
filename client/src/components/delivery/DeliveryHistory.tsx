@@ -253,7 +253,7 @@ const DeliveryHistory: React.FC = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{stats.totalRevenue.toFixed(0)}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total amount from your deliveries</p>
               </div>
             </div>
           </div>

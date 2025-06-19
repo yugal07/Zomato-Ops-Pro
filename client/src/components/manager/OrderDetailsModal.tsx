@@ -293,17 +293,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose })
           )}
 
           {/* Action Section */}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white">Need Help?</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Contact support for order-related queries</p>
-              </div>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Contact Support
-              </button>
-            </div>
-          </div>
+          
         </div>
 
         {/* Footer */}

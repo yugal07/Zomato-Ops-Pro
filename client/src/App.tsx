@@ -10,13 +10,13 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
-// Import Manager Components
+// Manager Components
 import ManagerDashboard from './components/manager/ManagerDashboard';
 import OrderTable from './components/manager/OrderTable';
 import PartnerAssignment from './components/manager/PartnerAssignment';
 import AnalyticsDashboard from './components/manager/AnalyticsDashboard';
 
-// Import Delivery Components
+// Delivery Components
 import DeliveryDashboard from './components/delivery/DeliveryDashboard';
 import DeliveryOrders from './components/delivery/DeliveryOrders';
 import DeliveryHistory from './components/delivery/DeliveryHistory';
